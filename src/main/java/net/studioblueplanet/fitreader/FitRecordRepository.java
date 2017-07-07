@@ -147,4 +147,36 @@ public class FitRecordRepository
     {
         this.records.add(record);
     }
+    
+    /**
+     * Returns a list of messages defined in this repository
+     * @return The list as an array list of strings
+     */
+    public ArrayList<String> getMessages()
+    {
+        ArrayList<String>   list;
+        FitRecord           record;
+        Iterator<FitRecord> it;
+        int                 number;
+        String              message;
+        FitGlobalProfile    profile;
+        
+        
+        list=new ArrayList();
+        profile=FitGlobalProfile.getInstance();
+        it=this.records.iterator();
+        
+        while (it.hasNext())
+        {
+            record=it.next();
+            
+            number=record.getGlobalMessageNumber();
+            message=profile.getGlobalMessageDescription(number);
+            list.add(message);
+        }
+        
+        
+        return list;
+    }
+    
 }
