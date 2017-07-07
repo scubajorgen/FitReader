@@ -674,7 +674,7 @@ public class FitRecord
             {
                 if (field.baseType==0x07) // String
                 {
-                    value=this.bytesToString(this.recordData.get(index), field.byteArrayPosition, 8);
+                    value=this.bytesToString(this.recordData.get(index), field.byteArrayPosition, field.size);
                 }
                 else
                 {
