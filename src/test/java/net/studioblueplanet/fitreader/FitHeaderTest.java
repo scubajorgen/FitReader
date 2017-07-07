@@ -60,20 +60,19 @@ public class FitHeaderTest
         System.out.println("readHeader");
 
 
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0F1234123456782e4649541234");
+        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0F121122123456782e4649541234");
         in=new ByteArrayInputStream(inputBytes);
 
         
         
         header = FitHeader.readHeader(in);
         
-        assertEquals(header.getHeaderSize(), 0x0F);
+        assertEquals(header.getHeaderSize()     , 0x0F);
         assertEquals(header.getProtocolVersion(), 0x12);
-        assertEquals(header.getProfileVersion(), 0x34);
-        assertEquals(header.getDataSize(), 0x78563412);
-        assertEquals(header.getDataType(), ".FIT");
-        assertEquals(header.getCrc(), 0x3412);
+        assertEquals(header.getProfileVersion() , 0x2211);
+        assertEquals(header.getDataSize()       , 0x78563412);
+        assertEquals(header.getDataType()       , ".FIT");
+        assertEquals(header.getCrc()            , 0x3412);
 
     }
-    
 }
