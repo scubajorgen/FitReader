@@ -10,6 +10,7 @@ import net.studioblueplanet.logger.DebugLogger;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 
 /**
  * This class is the entry point for this library. It is the reader that 
@@ -344,15 +345,9 @@ public class FitReader
         }
         return theInstance;
     }
-    
-    /**
-     * Read and parse the .fit file. This method reads the file and returns
-     * the FitRecordRepository. The repository contains all FitRecrods read
-     * and can be used for querying
-     * @param fileName Name of the file to parse.
-     * @return The FitRecordRepository
-     */
-    public FitRecordRepository readFile(String fileName)
+
+
+    public FitRecordRepository readInputStream(InputStream in)
     {
         FitHeader               fitHeader;
         FitReader               fitReader;
@@ -360,15 +355,11 @@ public class FitReader
         int                     bytesExpected;
         int                     bytesRead;
         int                     crc;
-        
-        
-        DebugLogger.info("Reading FIT file "+fileName);
-        FileInputStream in = null;
+     
         repository=new FitRecordRepository();
 
         try 
         {
-            in = new FileInputStream(fileName);
         
             fitHeader=FitHeader.readHeader(in);
             bytesExpected=fitHeader.getDataSize();
@@ -409,6 +400,34 @@ public class FitReader
                     DebugLogger.error(e.getMessage());
                 }
             }
+        }
+        return repository;
+    }
+            
+
+    
+    /**
+     * Read and parse the .fit file. This method reads the file and returns
+     * the FitRecordRepository. The repository contains all FitRecrods read
+     * and can be used for querying
+     * @param fileName Name of the file to parse.
+     * @return The FitRecordRepository
+     */
+    public FitRecordRepository readFile(String fileName)
+    {
+        FitRecordRepository repository;
+        FileInputStream in;
+        
+        repository=null;
+        
+        try
+        {
+            in=new FileInputStream(fileName);
+            repository=this.readInputStream(in);
+        }
+        catch (FileNotFoundException e)
+        {
+            DebugLogger.error("File not found: "+e.getMessage());
         }
         return repository;
     }
