@@ -20,7 +20,8 @@ The software uses
 
 Information
 ===========
-Blog:   http://blog.studioblueplanet.net/?page_id=468
+Javadoc: Refer to the Javadoc in the /target file.
+Blog:    http://blog.studioblueplanet.net/?page_id=468
 
 
 Garmin Track COnverter
