@@ -635,7 +635,24 @@ public class FitRecord
         speed   =(double)value/1000;
         return speed;
     }
-    
+
+    /**
+     * This method returns a particular value of the given field at given index
+     * as a number of seconds
+     * @param index Index in the array
+     * @param fieldName Name of the field as in the global profile
+     * @return The speed value or 0.0 if an error occurred.
+     */
+    public double getElapsedTimeValue(int index, String fieldName)
+    {
+        int value;
+        double seconds;
+
+        value=this.getIntValue(index, fieldName);
+        seconds   =(double)value/1000;
+        return seconds;
+    }
+
     /**
      * This method returns a particular value of the given field at given index
      * as enhanced distance value. 
