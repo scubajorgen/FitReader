@@ -15,7 +15,7 @@ import java.io.InputStream;
 public class FitToolbox
 {
     /**
-     * This method reads an interger value from the input stream
+     * This method reads an integer value from the input stream
      * @param in Input stream
      * @param bytes Number of bytes
      * @param isLittleEndian True if the format in the stream is little endian, false for big endian
