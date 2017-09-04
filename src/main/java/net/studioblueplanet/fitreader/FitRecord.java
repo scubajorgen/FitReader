@@ -7,6 +7,8 @@
 package net.studioblueplanet.fitreader;
 
 import net.studioblueplanet.logger.DebugLogger;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -556,9 +558,8 @@ public class FitRecord
         
         return value;
     }
-    
-    
-    
+
+
     /**
      * This method returns a particular value of the given field at given index
      * as DateTime value. Many of the records in the FIT global profile
@@ -573,15 +574,43 @@ public class FitRecord
         int                         value;
         DateTime                    dateTime;
         long                        milliseconds;
-        
+
         value=this.getIntValue(index, fieldName);
         dateTime=new DateTime("1989-12-31 00:00:00");
 
         milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
         milliseconds+=(long)value*1000;
-        dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));        
-
+        dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
         return dateTime;
+    }
+    /**
+     * This method returns a particular value of the given field at given index
+     * as TimeStamp value, taking a time zone offset into account.
+     * Many of the records in the FIT global profile
+     * contain a uint32 DateTime value. It represents the number of seconds
+     * since 31-12-1989 00:00.
+     * @param index Index in the array
+     * @param fieldName Name of the field as in the global profile
+     * @param offset Number of hours difference to GMT
+     * @return The DateTime value or null if an error occurred.
+     */
+    public Timestamp getTimeValue(int index, String fieldName, int offset)
+    {
+        int                         value;
+        DateTime                    dateTime;
+        long                        milliseconds;
+
+        value=this.getIntValue(index, fieldName);
+        dateTime=new DateTime("1989-12-31 00:00:00");
+
+        milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
+        milliseconds+=(long)value*1000;
+        dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
+        if (offset >= 0)
+            dateTime = dateTime.plus(0,0,0,offset,0,0,0,null);
+        else
+            dateTime = dateTime.minus(0,0,0,-1 * offset,0,0,0,null);
+        return Timestamp.valueOf(dateTime.toString());
     }
     
     /**
@@ -641,7 +670,7 @@ public class FitRecord
      * as a number of seconds
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
-     * @return The speed value or 0.0 if an error occurred.
+     * @return The number of seconds elapsed
      */
     public double getElapsedTimeValue(int index, String fieldName)
     {
