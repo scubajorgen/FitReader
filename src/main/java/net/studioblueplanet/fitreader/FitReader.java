@@ -188,7 +188,7 @@ public class FitReader
                 fieldDefinitionNumber   =in.read();
                 size                    =in.read();
                 baseType                =in.read();
-                // TO DO: store development field defintion
+                // TO DO: store development field definition
                 bytesRead               +=3;
                 i++;
             }
@@ -203,7 +203,7 @@ public class FitReader
      * read and parses the file stream and processes the next record.
      * A record can be a 'definition message' or a 'data message', defined by
      * the first byte in the record.
-     * A 'Defintion Message' defines the fields in the record. A 'Data Message'
+     * A 'Definition Message' defines the fields in the record. A 'Data Message'
      * contains field values.
      * A definition message generates a new Record instance, a data message
      * is transferred to a record values and added to the Record
@@ -408,7 +408,7 @@ public class FitReader
     
     /**
      * Read and parse the .fit file. This method reads the file and returns
-     * the FitRecordRepository. The repository contains all FitRecrods read
+     * the FitRecordRepository. The repository contains all FitRecords read
      * and can be used for querying
      * @param fileName Name of the file to parse.
      * @return The FitRecordRepository
