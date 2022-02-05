@@ -35,7 +35,8 @@ public class FitRecord
     private Endianness                          endianness;
     private boolean                             hasDeveloperData;
     private int                                 globalMessageNumber;
-    private final ArrayList<FitMessageField>    fieldDefinitions;
+    private final ArrayList<FitMessageField>    globalFieldDefinitions;
+    private final ArrayList<FitMessageField>    debugFieldDefinitions;
     private final ArrayList<int[]>              recordData;
     
     private int                                 recordLength;
@@ -63,7 +64,8 @@ public class FitRecord
         endianness              =Endianness.LITTLEENDIAN;
         byteArrayPosition       =0;
         
-        fieldDefinitions        =new ArrayList<FitMessageField>();
+        globalFieldDefinitions  =new ArrayList<FitMessageField>();
+        debugFieldDefinitions   =new ArrayList<FitMessageField>();
         recordData              =new ArrayList<int[]>();
     }
     
@@ -182,7 +184,7 @@ public class FitRecord
      * @param baseType baseType for this field. 
      * @param fieldNumber The field definition number
      */
-    public void addMessageField(int globalMessageNumber, int fieldNumber, int size, int baseType)
+    public void addMessageField(int globalMessageNumber, int fieldNumber, int size, int baseType, boolean isDebug)
     {
         FitFieldDefinition  fieldDefinition;
         FitGlobalProfile    profile;
@@ -199,7 +201,14 @@ public class FitRecord
             field.byteArrayPosition =byteArrayPosition; // start of the field data in the byte array
             byteArrayPosition       +=size;
             
-            this.fieldDefinitions.add(field);
+            if (isDebug)
+            {
+                debugFieldDefinitions.add(field);
+            }
+            else
+            {
+                globalFieldDefinitions.add(field);
+            }
             recordLength            +=size;
         }
         else
@@ -208,6 +217,8 @@ public class FitRecord
         }
         
     }
+    
+    
 
     /**
      * Return the size in bytes of field indicated by the field index
@@ -219,9 +230,9 @@ public class FitRecord
         FitMessageField field;
         int             fieldSize;
         
-        if (fieldIndex<fieldDefinitions.size())
+        if (fieldIndex<globalFieldDefinitions.size())
         {
-            field=this.fieldDefinitions.get(fieldIndex);
+            field=this.globalFieldDefinitions.get(fieldIndex);
             fieldSize=field.size;
         }
         else
@@ -285,7 +296,7 @@ public class FitRecord
         FitFieldDefinition          fieldDefinition;
         boolean                     found;
         
-        iterator    =this.fieldDefinitions.iterator();
+        iterator    =this.globalFieldDefinitions.iterator();
         found       =false;
         field       =null;
         
@@ -494,6 +505,15 @@ public class FitRecord
                     case 0x86: // uint32 
                         value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 4);
                         break;
+                    case 0x0A: // uint8z 
+                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 1);
+                        break;
+                    case 0x8B: // uint16z 
+                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 2);
+                        break;
+                    case 0x8C: // uint32z 
+                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 4);
+                        break;
                     default:
                         DebugLogger.info("Retrieving record value: value is not a integer");
                         break;
@@ -538,6 +558,9 @@ public class FitRecord
                         value=this.bytesToSignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
                         break;
                     case 0x8F: // uint64 
+                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
+                        break;
+                    case 0x90: // uint64z 
                         value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
                         break;
                     default:
@@ -763,7 +786,7 @@ public class FitRecord
         DebugLogger.debug("Number of fields        :"+this.numberOfFields);
         DebugLogger.debug("Number of dev. fields   :"+this.numberOfDeveloperFields);
         
-        iterator=fieldDefinitions.iterator();
+        iterator=globalFieldDefinitions.iterator();
         while (iterator.hasNext())
         {
             field=iterator.next();

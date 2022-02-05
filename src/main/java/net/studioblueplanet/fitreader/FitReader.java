@@ -69,14 +69,12 @@ public class FitReader
      */
     private int parseDataMessage(InputStream in, FitRecord record) throws IOException
     {
-        int     numberOfFields;
         int     i;
         int     bytesRead;
         int     recordSize;
         int     j;
         int[]   bytes;
         
-        numberOfFields=record.getNumberOfFields();
         bytesRead=0;
         
         i=0;
@@ -152,6 +150,12 @@ public class FitReader
         
         // Message Number
         globalMessageNumber=FitToolbox.readInt(in, 2, record.isLittleEndian());
+        
+if (globalMessageNumber==20)
+{
+    System.out.println();
+}
+        
         bytesRead+=2;
         record.setGlobalMessageNumber(globalMessageNumber);
         
@@ -169,7 +173,7 @@ public class FitReader
             size                    =in.read();
             baseType                =in.read();
             bytesRead               +=3;
-            record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType);
+            record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType, false);
             i++;
         }
         
@@ -179,7 +183,7 @@ public class FitReader
             // Number of developer data fields
             numberOfDataFields=in.read();
             bytesRead++;
-            record.setNumberOfFields(numberOfDataFields);
+            record.setNumberOfDeveloperFields(numberOfDataFields);
 
             // THe developer fields
             i=0;
@@ -188,7 +192,7 @@ public class FitReader
                 fieldDefinitionNumber   =in.read();
                 size                    =in.read();
                 baseType                =in.read();
-                // TO DO: store development field definition
+                record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType, true);
                 bytesRead               +=3;
                 i++;
             }

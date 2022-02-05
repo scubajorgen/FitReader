@@ -15,7 +15,6 @@ session,18,18
 lap,19,19
 record,20,20
 event,21,21
-source,22,22
 device_info,23,23
 workout,26,26
 workout_step,27,27
@@ -41,7 +40,6 @@ ant_tx,81,81
 ant_channel_id,82,82
 length,101,101
 monitoring_info,103,103
-battery,104,104
 pad,105,105
 slave_device,106,106
 connectivity,127,127
@@ -55,6 +53,7 @@ segment_id,148,148
 segment_leaderboard_entry,149,149
 segment_point,150,150
 segment_file,151,151
+workout_session,158,158
 watchface_settings,159,159
 gps_metadata,160,160
 camera_event,161,161
@@ -77,6 +76,17 @@ exd_data_concept_configuration,202,202
 field_description,206,206
 developer_data_id,207,207
 magnetometer_data,208,208
-undefined,209,65279
+barometer_data,209,209
+one_d_sensor_calibration,210,210
+set,225,225
+stress_level,227,227
+dive_settings,258,258
+dive_gas,259,259
+dive_alarm,262,262
+exercise_title,264,264
+dive_summary,268,268
+jump,285,285
+climb_pro,317,317
+undefined,318,65279
 mfg,65280,65534
 undefined,65535,65535
