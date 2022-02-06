@@ -46,7 +46,7 @@ public class FitGlobalProfile
            
     
     
-    private static final String                     GLOBALPROFILE="/profile.xlsx";
+    private static final String                     GLOBALPROFILE="/Profile.xlsx";
     /** The one and only instance */
     private static FitGlobalProfile                 theInstance=null;
     
@@ -244,10 +244,17 @@ public class FitGlobalProfile
         try
         {
             InputStream file = getClass().getResourceAsStream(GLOBALPROFILE);
-            Workbook workbook = new XSSFWorkbook(file);
             
-            this.parseGlobalProfileTypeSheet(workbook.getSheetAt(0));
-            this.parseGlobalProfileMessageSheet(workbook.getSheetAt(1));
+            if (file!=null)
+            {
+                Workbook workbook = new XSSFWorkbook(file);
+                this.parseGlobalProfileTypeSheet(workbook.getSheetAt(0));
+                this.parseGlobalProfileMessageSheet(workbook.getSheetAt(1));
+            }
+            else
+            {
+                DebugLogger.error("Cannot find global profile file "+GLOBALPROFILE);
+            }
         }
         catch (FileNotFoundException e)
         {
