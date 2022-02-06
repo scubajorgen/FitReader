@@ -83,16 +83,14 @@ public class FitGlobalProfile
         globalProfileTypes=new HashMap<>();
         int i = 0;
         maxRow=sheet.getLastRowNum();
-        for (i=1; i<maxRow; i++) 
+        for (i=1; i<=maxRow; i++) 
         {
             Row  row=sheet.getRow(i);
 
             Cell typeNameCell       =row.getCell(0);
             Cell typeBaseTypeCell   =row.getCell(1);
-            Cell valueNameCell      =row.getCell(2);
-            Cell valueCell          =row.getCell(3);
 
-            if (typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
+            if (typeNameCell!=null && typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
             {
                 type=new ProfileType(typeNameCell.getStringCellValue(), 
                                      typeBaseTypeCell.getStringCellValue());
@@ -100,6 +98,8 @@ public class FitGlobalProfile
             }
             else
             {
+                Cell valueNameCell      =row.getCell(2);
+                Cell valueCell          =row.getCell(3);
                 if (type!=null)
                 {
 
@@ -132,7 +132,7 @@ public class FitGlobalProfile
                 }
             }
         }
-//dumpGlobalTypes();        
+        DebugLogger.info("Read "+globalProfileTypes.size()+" global profile types");
     }
 
     /**
@@ -157,62 +157,82 @@ public class FitGlobalProfile
         messageNumber   =65535;
 
         maxRows=sheet.getLastRowNum();
-        for (lineNumber=2; lineNumber<maxRows; lineNumber++) 
+        for (lineNumber=2; lineNumber<=maxRows; lineNumber++) 
         {
             Row row=sheet.getRow(lineNumber);
-            name=row.getCell(0).getStringCellValue();
-            if (name.trim().length()>0)
+            
+            if (row!=null)
             {
-                messageName=name;
-                messageNumber=getGlobalMessageNumber(messageName);
-                if (messageNumber==65535)
+                Cell messageNameCell=row.getCell(0);
+                if (messageNameCell!=null)
                 {
-                    DebugLogger.error("Message number not found for description "+messageName+" @ line: "+lineNumber);
+                    name= messageNameCell.getStringCellValue().trim();
+                    if (name.length()>0)
+                    {
+                        messageName=name;
+                        messageNumber=getGlobalMessageNumber(messageName);
+                        if (messageNumber==65535)
+                        {
+                            DebugLogger.error("Message number not found for description "+messageName+" @ line: "+lineNumber);
+                        }
+                    }
                 }
-            }
+                else
+                {
+                    Cell fieldNameCell=row.getCell(2);
+                    if (fieldNameCell!=null)
+                    {
+                        name=fieldNameCell.getStringCellValue().trim();
+                        if (name.length()>0)
+                        {
+                            if (row.getCell(1)!=null && row.getCell(1).getCellType()==CellType.NUMERIC)
+                            {
+                                fieldNumber             =(int)row.getCell(1).getNumericCellValue();
+                            }
+                            else
+                            {
+                                fieldNumber             =-1;
+                            }
+                            fieldDescription            =row.getCell(2).getStringCellValue();
+                            field                       =new FitFieldDefinition();
+                            field.messageName           =messageName;
+                            field.messageNumber         =messageNumber;
+                            field.fieldNumber           =fieldNumber;
+                            field.fieldName             =fieldDescription;
+                            field.fieldType             =row.getCell(3).getStringCellValue();
 
-            if (row.getCell(2).getStringCellValue().trim().length()>0)
-            {
-                if (row.getCell(1).getCellType()==CellType.NUMERIC)
-                {
-                    fieldNumber             =(int)row.getCell(1).getNumericCellValue();
-                }
-                else
-                {
-                    fieldNumber             =-1;
-                }
-                fieldDescription            =row.getCell(2).getStringCellValue();
-                field                       =new FitFieldDefinition();
-                field.messageName           =messageName;
-                field.messageNumber         =messageNumber;
-                field.fieldNumber           =fieldNumber;
-                field.fieldName             =fieldDescription;
-                field.fieldType             =row.getCell(3).getStringCellValue();
-                
-                if (row.getCell(6).getCellType()==CellType.NUMERIC)
-                {
-                    field.scale=row.getCell(6).getNumericCellValue();
-                }
-                else
-                {
-                    field.scale=1.0;
-                }
+                            if (row.getCell(6)!=null && row.getCell(6).getCellType()==CellType.NUMERIC)
+                            {
+                                field.scale=row.getCell(6).getNumericCellValue();
+                            }
+                            else
+                            {
+                                field.scale=1.0;
+                            }
 
-                if (row.getCell(7).getCellType()==CellType.NUMERIC)
-                {
-                    field.offset=row.getCell(7).getNumericCellValue();
+                            if (row.getCell(7)!=null && row.getCell(7).getCellType()==CellType.NUMERIC)
+                            {
+                                field.offset=row.getCell(7).getNumericCellValue();
+                            }
+                            else
+                            {
+                                field.offset=0.0;
+                            }  
+                            if (row.getCell(8)!=null)
+                            {
+                                field.units=row.getCell(8).getStringCellValue();
+                            }
+                            else
+                            {
+                                field.units="";
+                            }
+                            globalProfileFields.add(field);
+                        }
+                    }
                 }
-                else
-                {
-                    field.offset=0.0;
-                }                
-                field.units=row.getCell(8).getStringCellValue();
-                
-                globalProfileFields.add(field);
             }
         }
-        this.dumpGlobalMessages();
-        System.out.println("");
+        DebugLogger.info("Read "+globalProfileFields.size()+" global profile field definitions");
     }
     
     /**
@@ -493,4 +513,23 @@ public class FitGlobalProfile
             DebugLogger.info(field.toString());
         }
     }
+    
+    /**
+     * Debugging: get the number of profile types read
+     * @return The number of global profile types
+     */
+    public int getNumberOfGlobalProfileTypes()
+    {
+        return this.globalProfileTypes.size();
+    }
+
+    /**
+     * Debugging: get the number of profile messages read
+     * @return The number of global profile messages
+     */
+    public int getNumberOfGlobalProfileFields()
+    {
+        return this.globalProfileFields.size();
+    }
+
 }
