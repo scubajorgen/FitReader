@@ -306,7 +306,7 @@ public class FitRecord
             fieldDefinition=field.definition;
             if (fieldDefinition!=null)
             {
-                if (fieldDefinition.fieldDescription.equals(fieldName))
+                if (fieldDefinition.fieldName.equals(fieldName))
                 {
                     found=true;
                 }
@@ -790,7 +790,7 @@ public class FitRecord
         while (iterator.hasNext())
         {
             field=iterator.next();
-            DebugLogger.debug("Field                   : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeDescription(field.baseType)+")");
+            DebugLogger.debug("Field                   : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
         }
         
     }

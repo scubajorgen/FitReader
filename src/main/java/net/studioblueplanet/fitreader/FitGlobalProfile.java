@@ -9,13 +9,18 @@ package net.studioblueplanet.fitreader;
 import net.studioblueplanet.logger.DebugLogger;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 /**
@@ -38,265 +43,204 @@ public class FitGlobalProfile
         public String  description;
     }
     
+           
     
     
+    private static final String                     GLOBALPROFILE="/profile.xlsx";
     /** The one and only instance */
     private static FitGlobalProfile                 theInstance=null;
     
-    private ArrayList<FitMessageNumber>             messageNumbers;
-    private ArrayList<FitFieldDefinition>           fieldDefinitions;
-    private ArrayList<FitBaseType>                  baseTypes;
+    private ArrayList<FitFieldDefinition>           globalProfileFields;
+    private Map<String,ProfileType>                 globalProfileTypes;
     
     private FitFieldDefinition                      fieldUnknown;
+    
     
     /**
      * Constructor
      */
     private FitGlobalProfile()
     {
-        readMessageNumbers();
-        readFieldDescriptions();
-        readBaseTypes();
-        
+        readGlobalProfileExcelFile();
         fieldUnknown=new FitFieldDefinition();
         fieldUnknown.fieldNumber=-1;
-        fieldUnknown.fieldDescription="unknown";
+        fieldUnknown.fieldName="unknown";
         fieldUnknown.messageNumber=-1;
-        fieldUnknown.fieldTypeDescription="unknown";
+        fieldUnknown.fieldType="unknown";
     }
-
     
     /**
-     * Reads the message descriptions from the file fit_messages.csv.
-     * A FIT file consists of records identified by a 'global
-     * message number', defined in the 'definition message'.
-     * This method reads the number and description.
+     * Parse the type sheet from the Profile.xslx
+     * @param sheet The type sheet
      */
-    private void readMessageNumbers()
+    private void parseGlobalProfileTypeSheet(Sheet sheet)
     {
-        String              csvFile      = "/fit_messages.csv";
-        String              cvsSplitBy   = ",";
-        BufferedReader      br           = null;
-        String              line;
-        String[]            fields;
-        FitMessageNumber    number;
+        int         maxRow;
+        ProfileType type;
+        long        value;
         
-        messageNumbers=new ArrayList<FitMessageNumber>();
-        try 
+        type=null;
+        globalProfileTypes=new HashMap<>();
+        int i = 0;
+        maxRow=sheet.getLastRowNum();
+        for (i=1; i<maxRow; i++) 
         {
-            DebugLogger.info("Reading global message number from "+csvFile);
-            InputStream is = getClass().getResourceAsStream(csvFile); 
-            br = new BufferedReader(new InputStreamReader(is));            
-            while ((line = br.readLine()) != null) 
+            Row  row=sheet.getRow(i);
+
+            Cell typeNameCell       =row.getCell(0);
+            Cell typeBaseTypeCell   =row.getCell(1);
+            Cell valueNameCell      =row.getCell(2);
+            Cell valueCell          =row.getCell(3);
+
+            if (typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
             {
-
-                // use comma as separator
-                fields = line.split(cvsSplitBy);
-                if (fields.length==3)
+                type=new ProfileType(typeNameCell.getStringCellValue(), 
+                                     typeBaseTypeCell.getStringCellValue());
+                globalProfileTypes.put(typeNameCell.getStringCellValue(), type);
+            }
+            else
+            {
+                if (type!=null)
                 {
-                    number=new FitMessageNumber();
-                    number.globalMessageNumberMin   =Integer.parseInt(fields[1]);
-                    number.globalMessageNumberMax   =Integer.parseInt(fields[2]);
-                    number.description              =fields[0];
 
-                    messageNumbers.add(number);
+                    if (valueCell.getCellType()==CellType.STRING)
+                    {
+                        if (valueCell.getStringCellValue().toLowerCase().startsWith("0x"))
+                        {
+                            value=Long.decode(valueCell.getStringCellValue());
+                        }
+                        else
+                        {
+                            value=Long.parseLong(valueCell.getStringCellValue().trim());
+                        }
+                        type.addTypeValue(valueNameCell.getStringCellValue(), value);
+                    }
+                    else if (valueCell.getCellType()==CellType.NUMERIC)
+                    {
+                        value=(int)valueCell.getNumericCellValue();
+                        type.addTypeValue(valueNameCell.getStringCellValue(), value);
+                    }
+                    else
+                    {
+                        DebugLogger.error("Unexpected value in "+GLOBALPROFILE);
+                    }
+
                 }
                 else
                 {
-                    DebugLogger.error("Error in file "+csvFile);
-                }
-
-            }
-        } 
-        catch (FileNotFoundException e) 
-        {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        catch (IOException e) 
-        {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        finally 
-        {
-            if (br != null) 
-            {
-                try 
-                {
-                    br.close();
-                } catch (IOException e) 
-                {
-                    e.printStackTrace();
+                    DebugLogger.error("Unexpected value in "+GLOBALPROFILE);
                 }
             }
-        }        
-        
+        }
+//dumpGlobalTypes();        
     }
-    
+
     /**
-     * Read the field descriptions from file. Each field belonging to 
-     * global message number has a 'Field definition number', defined 
-     * in the 'Field Definition' in the 'Definition Message'
+     * Parse the message sheet from the Profile.xslx
+     * @param sheet The message sheet
      */
-    private void readFieldDescriptions()
+    private void parseGlobalProfileMessageSheet(Sheet sheet)
     {
-        String                      csvFile     = "/fit_messagefields.csv";
-        String                      cvsSplitBy  = ",";
-        BufferedReader              br          = null;
-        String                      line;
-        String[]                    stringFields;
-        FitFieldDefinition   field;
+        FitFieldDefinition          field;
         int                         messageNumber;
         int                         fieldNumber;
-        String                      messageDescription;
+        String                      messageName;
+        String                      name;
         String                      fieldDescription;
         int                         lineNumber;
+        int                         maxRows;
         
-        fieldDefinitions=new ArrayList<FitFieldDefinition>();
-        try 
-        {
-            DebugLogger.info("Reading field definitions from "+csvFile);
-            lineNumber      =0;
-            messageNumber   =65535;
-            InputStream is = getClass().getResourceAsStream(csvFile); 
-            br = new BufferedReader(new InputStreamReader(is));            
-            // skip header lines
-            br.readLine();
-            br.readLine();
-            lineNumber+=2;
-            while ((line = br.readLine()) != null) 
-            {
+        globalProfileFields=new ArrayList<FitFieldDefinition>();
 
-                // use comma as separator
-                stringFields = line.split(cvsSplitBy);
-                lineNumber++;
-                if (stringFields.length>=0)
+        lineNumber      =0;
+        messageName     ="";
+        messageNumber   =65535;
+
+        maxRows=sheet.getLastRowNum();
+        for (lineNumber=2; lineNumber<maxRows; lineNumber++) 
+        {
+            Row row=sheet.getRow(lineNumber);
+            name=row.getCell(0).getStringCellValue();
+            if (name.trim().length()>0)
+            {
+                messageName=name;
+                messageNumber=getGlobalMessageNumber(messageName);
+                if (messageNumber==65535)
                 {
-                    messageDescription=stringFields[0];
-                    if (!messageDescription.equals(""))
-                    {
-                        messageNumber=this.getGlobalMessageNumber(messageDescription);
-                        if (messageNumber==65535)
-                        {
-                            DebugLogger.error("Message number not found for description "+messageDescription+" @ line: "+lineNumber+": "+line);
-                        }
-                    }
-                    if (stringFields.length>=2)
-                    {
-                        if (!stringFields[1].equals(""))
-                        {
-                            fieldNumber                 =Integer.parseInt(stringFields[1]);
-                            fieldDescription            =stringFields[2];
-                            field                       =new FitFieldDefinition();
-                            field.messageNumber         =messageNumber;
-                            field.fieldNumber           =fieldNumber;
-                            field.fieldDescription      =fieldDescription;
-                            if (stringFields.length>=3)
-                            {
-                                field.fieldTypeDescription  =stringFields[3];
-                            }
-                            else
-                            {
-                                field.fieldTypeDescription  ="not defined";
-                            }
-                            fieldDefinitions.add(field);
-                        }
-                    }
+                    DebugLogger.error("Message number not found for description "+messageName+" @ line: "+lineNumber);
+                }
+            }
+
+            if (row.getCell(2).getStringCellValue().trim().length()>0)
+            {
+                if (row.getCell(1).getCellType()==CellType.NUMERIC)
+                {
+                    fieldNumber             =(int)row.getCell(1).getNumericCellValue();
                 }
                 else
                 {
-                    DebugLogger.error("Error in file "+csvFile+", line "+lineNumber+": "+line);
+                    fieldNumber             =-1;
+                }
+                fieldDescription            =row.getCell(2).getStringCellValue();
+                field                       =new FitFieldDefinition();
+                field.messageName           =messageName;
+                field.messageNumber         =messageNumber;
+                field.fieldNumber           =fieldNumber;
+                field.fieldName             =fieldDescription;
+                field.fieldType             =row.getCell(3).getStringCellValue();
+                
+                if (row.getCell(6).getCellType()==CellType.NUMERIC)
+                {
+                    field.scale=row.getCell(6).getNumericCellValue();
+                }
+                else
+                {
+                    field.scale=1.0;
                 }
 
-            }
-        } 
-        catch (FileNotFoundException e) 
-        {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        catch (IOException e) 
-        {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        finally 
-        {
-            if (br != null) 
-            {
-                try 
+                if (row.getCell(7).getCellType()==CellType.NUMERIC)
                 {
-                    br.close();
-                } catch (IOException e) 
-                {
-                    e.printStackTrace();
+                    field.offset=row.getCell(7).getNumericCellValue();
                 }
+                else
+                {
+                    field.offset=0.0;
+                }                
+                field.units=row.getCell(8).getStringCellValue();
+                
+                globalProfileFields.add(field);
             }
-        }        
-        
+        }
+        this.dumpGlobalMessages();
+        System.out.println("");
     }
     
-
     /**
-     * Reads the base type definitions from fit_basetypes.csv
+     * Read the Garmin Global Profile from the Profile.xslx excel file.
+     * This file is delivered with the Garmin SDK.
      */
-    private void readBaseTypes()
+    private void readGlobalProfileExcelFile()
     {
-        String              csvFile      = "/fit_basetypes.csv";
-        String              cvsSplitBy   = ",";
-        BufferedReader      br           = null;
-        String              line;
-        String[]            fields;
-        FitBaseType         baseType;
-        
-        baseTypes=new ArrayList<FitBaseType>();
-        try 
+        try
         {
-            DebugLogger.info("Reading base type descriptions from "+csvFile);
-            InputStream is = getClass().getResourceAsStream(csvFile); 
-            br = new BufferedReader(new InputStreamReader(is));            
-            while ((line = br.readLine()) != null) 
-            {
-
-                // use comma as separator
-                fields = line.split(cvsSplitBy);
-                if (fields.length==2)
-                {
-                    baseType=new FitBaseType();
-                    baseType.baseTypeNumber=Integer.parseInt(fields[1]);
-                    baseType.baseTypeDescription=fields[0];
-                    baseTypes.add(baseType);
-                }
-                else
-                {
-                    DebugLogger.error("Error in file "+csvFile);
-                }
-
-            }
-        } 
-        catch (FileNotFoundException e) 
+            InputStream file = getClass().getResourceAsStream(GLOBALPROFILE);
+            Workbook workbook = new XSSFWorkbook(file);
+            
+            this.parseGlobalProfileTypeSheet(workbook.getSheetAt(0));
+            this.parseGlobalProfileMessageSheet(workbook.getSheetAt(1));
+        }
+        catch (FileNotFoundException e)
         {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        catch (IOException e) 
+            System.err.println("File "+GLOBALPROFILE+" not found: "+e.getMessage());
+        }
+        catch (IOException e)
         {
-            DebugLogger.error("Error reading "+csvFile+": "+e.getMessage());
-        } 
-        finally 
-        {
-            if (br != null) 
-            {
-                try 
-                {
-                    br.close();
-                } catch (IOException e) 
-                {
-                    e.printStackTrace();
-                }
-            }
-        }        
+            System.err.println("Error reading file "+GLOBALPROFILE+": "+e.getMessage());
+        }
+        System.out.println("Global Profile read from "+GLOBALPROFILE);
         
     }
-    
-    
-    
+
     /**
      * Returns the one and only singleton instance of this class
      * @return The instance of this class
@@ -307,31 +251,31 @@ public class FitGlobalProfile
         {
             theInstance=new FitGlobalProfile();
         }
-        
         return theInstance;
     }
     
     /**
-     * Get the description of the message, based on the global message number
+     * Get the name of the message, based on the global message number
      * @param messageNumber The global message number as present in the definition message (0-65535)
      * @return The description, or "not found" if the number is illegal
      */
-    public String getGlobalMessageDescription(int messageNumber)
+    public String getGlobalMessageName(int messageNumber)
     {
         String                          description;
-        Iterator<FitMessageNumber>      iterator;
+        Iterator<ProfileTypeValue>      iterator;
         boolean                         found;
-        FitMessageNumber                number;
+        ProfileTypeValue                value;
         
-        iterator    =messageNumbers.iterator();
+        ProfileType type=globalProfileTypes.get("mesg_num");
+        iterator    =type.getValues().iterator();
         found       =false;
         description="not found";
         while (iterator.hasNext() && !found)
         {
-            number=iterator.next();
-            if ((messageNumber>=number.globalMessageNumberMin) && (messageNumber<=number.globalMessageNumberMax))
+            value=iterator.next();
+            if (messageNumber==value.getValue())
             {
-                description=number.description;
+                description=value.getValueName();
                 found=true;
             }
         }
@@ -341,49 +285,50 @@ public class FitGlobalProfile
 
     /**
      * Returns the minimum message number based on the description
-     * @param description The description to match
+     * @param messageName The description to match
      * @return The message number or 65535 (not_defined) if not found
      */
-    public int getGlobalMessageNumber(String description)
+    public int getGlobalMessageNumber(String messageName)
     {
         int                         messageNumber;
-        Iterator<FitMessageNumber>     iterator;
+        Iterator<ProfileTypeValue>  it;
         boolean                     found;
-        FitMessageNumber               number;
+        ProfileTypeValue            value;
         
-        iterator        =messageNumbers.iterator();
-        found           =false;
+        ProfileType type=globalProfileTypes.get("mesg_num");
+        it              =type.getValues().iterator();
         messageNumber   =65535;
-        while (iterator.hasNext() && !found)
+
+        found=false;
+        while (it.hasNext() && !found)
         {
-            number=iterator.next();
-            if (description.equals(number.description))
+            value=it.next();
+            if (value.getValueName().equals(messageName))
             {
-                messageNumber=number.globalMessageNumberMin;
+                messageNumber=(int)value.getValue();
                 found=true;
             }
         }
         
         return messageNumber;
-        
     }
     
     
     /**
-     * This method finds the field description given the global message number
+     * This method finds the field name given the global message number
      * and field identification
      * @param globalMessageNumber The global message number (0-65535)
      * @param fieldNumber The field number (0-255)
      * @return The description or "not found" if not found
      */
-    public String getMessageFieldDescription(int globalMessageNumber, int fieldNumber)
+    public String getMessageFieldName(int globalMessageNumber, int fieldNumber)
     {
         String                              description;
         Iterator<FitFieldDefinition>        iterator;
         boolean                             found;
         FitFieldDefinition                  field;
         
-        iterator    =fieldDefinitions.iterator();
+        iterator    =globalProfileFields.iterator();
         found       =false;
         description="not found";
         while (iterator.hasNext() && !found)
@@ -391,7 +336,7 @@ public class FitGlobalProfile
             field=iterator.next();
             if ((field.messageNumber==globalMessageNumber) && (field.fieldNumber==fieldNumber))
             {
-                description=field.fieldDescription;
+                description=field.fieldName;
                 found=true;
             }
         }
@@ -412,7 +357,7 @@ public class FitGlobalProfile
         boolean                         found;
         FitFieldDefinition              field;
         
-        iterator    =fieldDefinitions.iterator();
+        iterator    =globalProfileFields.iterator();
         found       =false;
         field       =null;
         while (iterator.hasNext() && !found)
@@ -425,12 +370,12 @@ public class FitGlobalProfile
         }
         if (!found)
         {
-            if (this.getGlobalMessageDescription(globalMessageNumber)!=null)
+            if (this.getGlobalMessageName(globalMessageNumber)!=null)
             {
                 field=new FitFieldDefinition();
                 field.messageNumber=globalMessageNumber;
                 field.fieldNumber=-1;
-                field.fieldDescription="not found";
+                field.fieldName="not found";
             }
             else
             {
@@ -440,33 +385,61 @@ public class FitGlobalProfile
 
         return field;
     }
+    
+    /**
+     * Return the message field description based on message name and field name
+     * @param messageName Name of the message
+     * @param fieldName Name of the field
+     * @return The field definition or null if not found
+     */
+    public FitFieldDefinition getMessageField(String messageName, String fieldName)
+    {
+        Iterator<FitFieldDefinition>    iterator;
+        boolean                         found;
+        FitFieldDefinition              field;
+        FitFieldDefinition              theField;
+        
+        iterator    =globalProfileFields.iterator();
+        found       =false;
+        theField    =null;
+
+        while (iterator.hasNext() && theField==null)
+        {
+            field=iterator.next();
+            if (field.messageName.equals(messageName) && field.fieldName.equals(fieldName))
+            {
+                theField=field;
+            }
+        }
+        return theField;
+    }
 
     /**
-     * Get the description of the base type, based on the base type number as in the file.
+     * Get the name of the base type, based on the base type number as in the file.
      * @param baseTypeNumber The base type number as present in the definition message (0-255)
-     * @return The description, or "not found" if the number is illegal
+     * @return The name, or "not found" if the number is illegal
      */
-    public String getBaseTypeDescription(int baseTypeNumber)
+    public String getBaseTypeName(int baseTypeNumber)
     {
-        String                      description;
-        Iterator<FitBaseType>       iterator;
-        boolean                     found;
-        FitBaseType                 baseType;
+        String                          name;
+        Iterator<ProfileTypeValue>      iterator;
+        boolean                         found;
+        ProfileTypeValue                value;
         
-        iterator    =baseTypes.iterator();
+        ProfileType type=globalProfileTypes.get("fit_base_type");
+        iterator    =type.getValues().iterator();
         found       =false;
-        description="not found";
+        name="not found";
         while (iterator.hasNext() && !found)
         {
-            baseType=iterator.next();
-            if (baseType.baseTypeNumber==baseTypeNumber)
+            value=iterator.next();
+            if (baseTypeNumber==value.getValue())
             {
-                description=baseType.baseTypeDescription;
+                name=value.getValueName();
                 found=true;
             }
         }
-        
-        return description;
+        return name;        
     }
     
     
@@ -474,7 +447,7 @@ public class FitGlobalProfile
      * Convert signed integer to latitude or longitude.
      * @param value The signed integer value
      * @return Lat or lon value
-     */
+     *//*
     public static double sintToLatLon(int value)
     {
         double latlon;
@@ -482,6 +455,42 @@ public class FitGlobalProfile
         latlon=180.0/(double)value;
         
         return latlon;
+    }*/
+
+    /**
+     * Debugging: dump the global types
+     */
+    public void dumpGlobalTypes()
+    {
+        Iterator<ProfileTypeValue>  itValue;
+        ProfileType                 type;
+        ProfileTypeValue            value;
+        
+        for(String key : globalProfileTypes.keySet())
+        {
+            type=      globalProfileTypes.get(key);
+            itValue=type.getValues().iterator();
+            while (itValue.hasNext())
+            {
+                value=itValue.next();
+                DebugLogger.info(type.getType()+" "+value.getValueName()+"("+value.getValue()+")");
+            }
+        }
     }
     
+    /**
+     * Debugging: dump the field definitions
+     */
+    public void dumpGlobalMessages()
+    {
+        Iterator<FitFieldDefinition>    itType;
+        FitFieldDefinition              field;
+        
+        itType=globalProfileFields.iterator();
+        while (itType.hasNext())
+        {
+            field=      itType.next();
+            DebugLogger.info(field.toString());
+        }
+    }
 }

@@ -15,20 +15,20 @@ public class FitFieldDefinition
     private static  FitGlobalProfile profile=null;
     
     public int      messageNumber;
+    public String   messageName;
     public int      fieldNumber;
-    public String   fieldDescription;
-    public String   fieldTypeDescription;
-
+    public String   fieldName;
+    public String   fieldType;
+    public double   scale;
+    public double   offset;
+    public String   units;
+    
     @Override
     public String   toString()
     {
-        if (profile==null)
-        {
-            profile=FitGlobalProfile.getInstance();
-        }
-        
-        return profile.getGlobalMessageDescription(messageNumber)+"("+messageNumber+") , " + 
-              fieldDescription+"("+fieldNumber+"), "+fieldTypeDescription;        
+        return messageName+"("+messageNumber+") , " + 
+               fieldName+"("+fieldNumber+"), "+fieldType+", "+
+               units+", "+scale+", "+offset;        
     }
     
 }

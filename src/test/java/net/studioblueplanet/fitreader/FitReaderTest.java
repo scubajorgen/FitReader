@@ -222,7 +222,7 @@ public class FitReaderTest
         messages=repository.getMessages();
         
         // The 'waypoint' field (id=29) no longer exists...
-        assertEquals("waypoints", messages.get(2));
+        assertEquals("not found", messages.get(2));
         
         repository=this.readFitFile("src/test/resources/LocationsEdge830.fit");
         
@@ -231,9 +231,7 @@ public class FitReaderTest
         messages=repository.getMessages();
         
         // The 'waypoint' field (id=29) no longer exists...
-        assertEquals("waypoints", messages.get(2));
-        
-
+        assertEquals("not found", messages.get(2));
     }
 
 }

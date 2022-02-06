@@ -171,7 +171,7 @@ public class FitRecordRepository
             record=it.next();
             
             number=record.getGlobalMessageNumber();
-            message=profile.getGlobalMessageDescription(number);
+            message=profile.getGlobalMessageName(number);
             list.add(message);
         }
         
