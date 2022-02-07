@@ -11,6 +11,7 @@ import net.studioblueplanet.logger.DebugLogger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import hirondelle.date4j.DateTime;
 import java.util.TimeZone;
@@ -35,9 +36,9 @@ public class FitRecord
     private Endianness                          endianness;
     private boolean                             hasDeveloperData;
     private int                                 globalMessageNumber;
-    private final ArrayList<FitMessageField>    globalFieldDefinitions;
-    private final ArrayList<FitMessageField>    debugFieldDefinitions;
-    private final ArrayList<int[]>              recordData;
+    private final List<FitMessageField>         globalFieldDefinitions;
+    private final List<FitMessageField>         developerFieldDefinitions;
+    private final List<int[]>                   recordData;
     
     private int                                 recordLength;
     
@@ -65,7 +66,7 @@ public class FitRecord
         byteArrayPosition       =0;
         
         globalFieldDefinitions  =new ArrayList<FitMessageField>();
-        debugFieldDefinitions   =new ArrayList<FitMessageField>();
+        developerFieldDefinitions   =new ArrayList<FitMessageField>();
         recordData              =new ArrayList<int[]>();
     }
     
@@ -203,7 +204,7 @@ public class FitRecord
             
             if (isDebug)
             {
-                debugFieldDefinitions.add(field);
+                developerFieldDefinitions.add(field);
             }
             else
             {
@@ -795,5 +796,22 @@ public class FitRecord
         
     }
     
-    
+    /**
+     * Returns the list of message field definitions
+     * @return The list
+     */
+    public List<FitMessageField> getGlobalFieldDefintions()
+    {
+        return this.globalFieldDefinitions;
+    }
+
+    /**
+     * Returns the list of devloper message field definitions
+     * @return The list
+     */
+    public List<FitMessageField> getDeveloperFieldDefintions()
+    {
+        return this.developerFieldDefinitions;
+    }
+
 }

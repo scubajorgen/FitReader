@@ -179,55 +179,46 @@ public class FitGlobalProfile
                 }
                 else
                 {
-                    Cell fieldNameCell=row.getCell(2);
-                    if (fieldNameCell!=null)
+                    Cell fieldNameCell  =row.getCell(2);
+                    Cell fieldNumberCell=row.getCell(1);
+                    if (fieldNumberCell!=null && fieldNameCell!=null && fieldNumberCell.getCellType()==CellType.NUMERIC)
                     {
-                        name=fieldNameCell.getStringCellValue().trim();
-                        if (name.length()>0)
+                        name                        =fieldNameCell.getStringCellValue().trim();
+                        fieldNumber                 =(int)row.getCell(1).getNumericCellValue();
+                        fieldDescription            =row.getCell(2).getStringCellValue();
+                        field                       =new FitFieldDefinition();
+                        field.messageName           =messageName;
+                        field.messageNumber         =messageNumber;
+                        field.fieldNumber           =fieldNumber;
+                        field.fieldName             =fieldDescription;
+                        field.fieldType             =row.getCell(3).getStringCellValue();
+
+                        if (row.getCell(6)!=null && row.getCell(6).getCellType()==CellType.NUMERIC)
                         {
-                            if (row.getCell(1)!=null && row.getCell(1).getCellType()==CellType.NUMERIC)
-                            {
-                                fieldNumber             =(int)row.getCell(1).getNumericCellValue();
-                            }
-                            else
-                            {
-                                fieldNumber             =-1;
-                            }
-                            fieldDescription            =row.getCell(2).getStringCellValue();
-                            field                       =new FitFieldDefinition();
-                            field.messageName           =messageName;
-                            field.messageNumber         =messageNumber;
-                            field.fieldNumber           =fieldNumber;
-                            field.fieldName             =fieldDescription;
-                            field.fieldType             =row.getCell(3).getStringCellValue();
-
-                            if (row.getCell(6)!=null && row.getCell(6).getCellType()==CellType.NUMERIC)
-                            {
-                                field.scale=row.getCell(6).getNumericCellValue();
-                            }
-                            else
-                            {
-                                field.scale=1.0;
-                            }
-
-                            if (row.getCell(7)!=null && row.getCell(7).getCellType()==CellType.NUMERIC)
-                            {
-                                field.offset=row.getCell(7).getNumericCellValue();
-                            }
-                            else
-                            {
-                                field.offset=0.0;
-                            }  
-                            if (row.getCell(8)!=null)
-                            {
-                                field.units=row.getCell(8).getStringCellValue();
-                            }
-                            else
-                            {
-                                field.units="";
-                            }
-                            globalProfileFields.add(field);
+                            field.scale=row.getCell(6).getNumericCellValue();
                         }
+                        else
+                        {
+                            field.scale=1.0;
+                        }
+
+                        if (row.getCell(7)!=null && row.getCell(7).getCellType()==CellType.NUMERIC)
+                        {
+                            field.offset=row.getCell(7).getNumericCellValue();
+                        }
+                        else
+                        {
+                            field.offset=0.0;
+                        }  
+                        if (row.getCell(8)!=null)
+                        {
+                            field.units=row.getCell(8).getStringCellValue();
+                        }
+                        else
+                        {
+                            field.units="";
+                        }
+                        globalProfileFields.add(field);
                     }
                 }
             }
@@ -250,6 +241,7 @@ public class FitGlobalProfile
                 Workbook workbook = new XSSFWorkbook(file);
                 this.parseGlobalProfileTypeSheet(workbook.getSheetAt(0));
                 this.parseGlobalProfileMessageSheet(workbook.getSheetAt(1));
+                file.close();
             }
             else
             {
@@ -397,17 +389,11 @@ public class FitGlobalProfile
         }
         if (!found)
         {
-            if (this.getGlobalMessageName(globalMessageNumber)!=null)
-            {
-                field=new FitFieldDefinition();
-                field.messageNumber=globalMessageNumber;
-                field.fieldNumber=-1;
-                field.fieldName="not found";
-            }
-            else
-            {
-                field=this.fieldUnknown;
-            }
+            field=new FitFieldDefinition();
+            field.messageNumber=globalMessageNumber;
+            field.messageName=getGlobalMessageName(globalMessageNumber);
+            field.fieldNumber=fieldNumber;
+            field.fieldName="not found";
         }
 
         return field;

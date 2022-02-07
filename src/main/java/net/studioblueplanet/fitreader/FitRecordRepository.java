@@ -9,6 +9,7 @@ package net.studioblueplanet.fitreader;
 import net.studioblueplanet.logger.DebugLogger;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -16,7 +17,7 @@ import java.util.Iterator;
  */
 public class FitRecordRepository
 {
-    ArrayList<FitRecord> records;
+    private List<FitRecord> records;
     
     public FitRecordRepository()
     {
@@ -136,9 +137,6 @@ public class FitRecordRepository
         return record;
     }
     
-    
-    
-    
     /**
      * Add the record to the repository
      * @param record The record to add
@@ -152,7 +150,7 @@ public class FitRecordRepository
      * Returns a list of messages defined in this repository
      * @return The list as an array list of strings
      */
-    public ArrayList<String> getMessages()
+    public List<String> getMessages()
     {
         ArrayList<String>   list;
         FitRecord           record;
@@ -160,7 +158,6 @@ public class FitRecordRepository
         int                 number;
         String              message;
         FitGlobalProfile    profile;
-        
         
         list=new ArrayList();
         profile=FitGlobalProfile.getInstance();
@@ -174,9 +171,27 @@ public class FitRecordRepository
             message=profile.getGlobalMessageName(number);
             list.add(message);
         }
-        
-        
         return list;
     }
-    
+
+    /**
+     * Debugging: dump the field defininitions in each record
+     */
+    public void dumpRecordDefintions()
+    {
+        Iterator<FitRecord>     itRecord;
+        List<FitMessageField>   fields;
+        
+        for (FitRecord record : records)
+        {
+            DebugLogger.info("MESSAGE: "+FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber())+": "+
+                             record.getNumberOfRecordValues()+" records");
+            fields=record.getGlobalFieldDefintions();
+            
+            for (FitMessageField field : fields)
+            {
+                DebugLogger.info(field.definition.toString());
+            }
+        }
+    }
 }

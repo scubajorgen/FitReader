@@ -60,7 +60,7 @@ public class FitGlobalProfileTest
         
         // Validate the number of lines read from the excel file
         assertEquals(164, instance.getNumberOfGlobalProfileTypes());
-        assertEquals(1187, instance.getNumberOfGlobalProfileFields());
+        assertEquals(1107, instance.getNumberOfGlobalProfileFields());
     }
 
     /**
@@ -107,21 +107,31 @@ public class FitGlobalProfileTest
     {
         System.out.println("getMessageField - by number");
         FitFieldDefinition definition = instance.getMessageField(0, 0);
+        assertEquals(0, definition.messageNumber);
+        assertEquals("file_id", definition.messageName);
         assertEquals(0, definition.fieldNumber);
         assertEquals("type", definition.fieldName);
-        assertEquals(0, definition.messageNumber);
         assertEquals("file", definition.fieldType);
 
         definition = instance.getMessageField(9, 2);
+        assertEquals(9, definition.messageNumber);
+        assertEquals("power_zone", definition.messageName);
         assertEquals(2, definition.fieldNumber);
         assertEquals("name", definition.fieldName);
-        assertEquals(9, definition.messageNumber);
         assertEquals("string", definition.fieldType);
         
         definition = instance.getMessageField(999, 999);
-        assertEquals(-1, definition.fieldNumber);
-        assertEquals("not found", definition.fieldName);
         assertEquals(999, definition.messageNumber);
+        assertEquals("not found", definition.messageName);
+        assertEquals(999, definition.fieldNumber);
+        assertEquals("not found", definition.fieldName);
+        assertEquals(null, definition.fieldType);
+
+        definition = instance.getMessageField(2, 999);
+        assertEquals(2, definition.messageNumber);
+        assertEquals("device_settings", definition.messageName);
+        assertEquals(999, definition.fieldNumber);
+        assertEquals("not found", definition.fieldName);
         assertEquals(null, definition.fieldType);
     }
 
@@ -139,9 +149,7 @@ public class FitGlobalProfileTest
         assertEquals(3, definition.fieldNumber);
 
         definition = instance.getMessageField("file_id", "garmin_product");
-        assertNotNull(definition);
-        assertEquals(0, definition.messageNumber);
-        assertEquals(-1, definition.fieldNumber);
+        assertNull(definition);
 
         definition = instance.getMessageField("non", "existing");
         assertNull(definition);

@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.List;
 
 
 import net.studioblueplanet.logger.DebugLogger;
@@ -178,7 +178,7 @@ public class FitReaderTest
     public void testRecordRepository()
     {
         FitRecordRepository repository;
-        ArrayList<String>   messages;
+        List<String>   messages;
         
         System.out.println("FitRecordRepository");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
@@ -210,7 +210,7 @@ public class FitReaderTest
     public void testLocationsRepository()
     {
         FitRecordRepository repository;
-        ArrayList<String>   messages;
+        List<String>   messages;
         
         System.out.println("FitRecordRepository");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_DEBUG);

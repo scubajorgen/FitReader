@@ -21,9 +21,6 @@ public class FitReader
 {
     static FitReader theInstance=null;
     
-
-    
-    
     int[] crc_table =
     {
         0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
@@ -59,8 +56,6 @@ public class FitReader
         return crc;
     }    
     
-
-
     /**
      * Parses the record data, provided the record is a FIT "data message"
      * @param in The input reader
@@ -150,11 +145,6 @@ public class FitReader
         
         // Message Number
         globalMessageNumber=FitToolbox.readInt(in, 2, record.isLittleEndian());
-        
-if (globalMessageNumber==20)
-{
-    System.out.println();
-}
         
         bytesRead+=2;
         record.setGlobalMessageNumber(globalMessageNumber);
