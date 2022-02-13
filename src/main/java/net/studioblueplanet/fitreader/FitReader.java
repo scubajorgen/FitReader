@@ -19,7 +19,10 @@ import java.io.FileNotFoundException;
  */
 public class FitReader
 {
-    static FitReader theInstance=null;
+    private static FitReader    theInstance=null;
+
+    private FitRecordRepository repository;
+
     
     int[] crc_table =
     {
@@ -152,8 +155,6 @@ public class FitReader
         // Number of data fields
         numberOfDataFields=in.read();
         bytesRead++;
-        record.setNumberOfFields(numberOfDataFields);
-        
         
         // The data fields
         i=0;
@@ -163,7 +164,7 @@ public class FitReader
             size                    =in.read();
             baseType                =in.read();
             bytesRead               +=3;
-            record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType, false);
+            record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType);
             i++;
         }
         
@@ -173,16 +174,15 @@ public class FitReader
             // Number of developer data fields
             numberOfDataFields=in.read();
             bytesRead++;
-            record.setNumberOfDeveloperFields(numberOfDataFields);
-
-            // THe developer fields
+ 
+            // The developer fields
             i=0;
             while (i<numberOfDataFields)
             {
                 fieldDefinitionNumber   =in.read();
                 size                    =in.read();
-                baseType                =in.read();
-                record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType, true);
+                developerDataIndex                =in.read();
+                record.addDeveloperField(globalMessageNumber, fieldDefinitionNumber, size, developerDataIndex, repository.getFitRecord("field_description"));
                 bytesRead               +=3;
                 i++;
             }
@@ -345,7 +345,6 @@ public class FitReader
     {
         FitHeader               fitHeader;
         FitReader               fitReader;
-        FitRecordRepository     repository;
         int                     bytesExpected;
         int                     bytesRead;
         int                     crc;
@@ -357,7 +356,6 @@ public class FitReader
         
             fitHeader=FitHeader.readHeader(in);
             bytesExpected=fitHeader.getDataSize();
-            
 
             bytesRead=0;
             
@@ -409,22 +407,20 @@ public class FitReader
      */
     public FitRecordRepository readFile(String fileName)
     {
-        FitRecordRepository repository;
+        FitRecordRepository repo;
         FileInputStream in;
         
-        repository=null;
+        repo=null;
         
         try
         {
             in=new FileInputStream(fileName);
-            repository=this.readInputStream(in);
+            repo=this.readInputStream(in);
         }
         catch (FileNotFoundException e)
         {
             DebugLogger.error("File not found: "+e.getMessage());
         }
-        return repository;
+        return repo;
     }
-    
-    
 }

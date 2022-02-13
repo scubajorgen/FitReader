@@ -19,7 +19,7 @@ import java.util.TimeZone;
 
 /**
  * This class represents a full FIT record. It contains the record 
- * defintion, but also the record values.
+ * definition, but also the record values.
  * @author Jorgen
  */
 public class FitRecord
@@ -31,13 +31,11 @@ public class FitRecord
     
     private final HeaderType                    headerType;
     private int                                 localMessageType;
-    private int                                 numberOfFields;
-    private int                                 numberOfDeveloperFields;
     private Endianness                          endianness;
     private boolean                             hasDeveloperData;
     private int                                 globalMessageNumber;
     private final List<FitMessageField>         globalFieldDefinitions;
-    private final List<FitMessageField>         developerFieldDefinitions;
+    private final List<FitDeveloperField>       developerFieldDefinitions;
     private final List<int[]>                   recordData;
     
     private int                                 recordLength;
@@ -59,15 +57,13 @@ public class FitRecord
         this.headerType         =headerType;
         this.hasDeveloperData   =hasDeveloperData;
         globalMessageNumber     =0xff;
-        numberOfFields          =0;
-        numberOfDeveloperFields =0;
         recordLength            =0;
         endianness              =Endianness.LITTLEENDIAN;
         byteArrayPosition       =0;
         
-        globalFieldDefinitions  =new ArrayList<FitMessageField>();
-        developerFieldDefinitions   =new ArrayList<FitMessageField>();
-        recordData              =new ArrayList<int[]>();
+        globalFieldDefinitions      =new ArrayList<>();
+        developerFieldDefinitions   =new ArrayList<>();
+        recordData                  =new ArrayList<int[]>();
     }
     
     /***************************************************************************\
@@ -117,17 +113,6 @@ public class FitRecord
         this.hasDeveloperData=hasDeveloperData;
     }
     
-    /**
-     * Sets the number of fields in this record
-     * @param number The number of fields
-     */
-    public void setNumberOfFields(int number)
-    {
-        if (number>=0)
-        {
-            this.numberOfFields=number;
-        }
-    }
     
     /**
      * Returns the number of fields
@@ -135,20 +120,9 @@ public class FitRecord
      */
     public int getNumberOfFields()
     {
-        return this.numberOfFields;
+        return this.globalFieldDefinitions.size();
     }
 
-    /**
-     * Sets the number of developer fields in this record
-     * @param number The number of fields
-     */
-    public void setNumberOfDeveloperFields(int number)
-    {
-        if (number>=0)
-        {
-            this.numberOfDeveloperFields=number;
-        }
-    }
     
     /**
      * Returns the number of fields
@@ -156,7 +130,7 @@ public class FitRecord
      */
     public int getNumberOfDeveloperFields()
     {
-        return this.numberOfDeveloperFields;
+        return this.developerFieldDefinitions.size();
     }
     
     /**
@@ -185,7 +159,7 @@ public class FitRecord
      * @param baseType baseType for this field. 
      * @param fieldNumber The field definition number
      */
-    public void addMessageField(int globalMessageNumber, int fieldNumber, int size, int baseType, boolean isDebug)
+    public void addMessageField(int globalMessageNumber, int fieldNumber, int size, int baseType)
     {
         FitFieldDefinition  fieldDefinition;
         FitGlobalProfile    profile;
@@ -201,15 +175,7 @@ public class FitRecord
             field.size              =size;
             field.byteArrayPosition =byteArrayPosition; // start of the field data in the byte array
             byteArrayPosition       +=size;
-            
-            if (isDebug)
-            {
-                developerFieldDefinitions.add(field);
-            }
-            else
-            {
-                globalFieldDefinitions.add(field);
-            }
+            globalFieldDefinitions.add(field);
             recordLength            +=size;
         }
         else
@@ -219,6 +185,62 @@ public class FitRecord
         
     }
     
+    /**
+     * Adds a field definition to the array based on message number and field number
+     * @param globalMessageNumber The global message number
+     * @param fieldNumber The field definition number
+     * @param size Field length in bytes
+     * @param developerDataIndex Index. 
+     */
+    public void addDeveloperField(int globalMessageNumber, int fieldNumber, int size, int developerDataIndex, FitRecord fieldDescription)
+    {
+        int                 i;
+        int                 devIx;
+        int                 num;
+        FitDeveloperField   field;
+        boolean             found;
+        
+        
+        
+        field                   =new FitDeveloperField();
+        field.fieldNumber       =fieldNumber;
+        field.developerDataIndex=developerDataIndex;
+        field.size              =size;
+        field.byteArrayPosition =byteArrayPosition; // start of the field data in the byte array
+        byteArrayPosition       +=size;
+
+        // Now get the description of the developer field...
+        if (fieldDescription!=null)
+        {
+            i=0;
+            found=false;
+            while (i<fieldDescription.getRecordLength() && !found)
+            {
+                devIx   =fieldDescription.getIntValue(i, "developer_data_index");
+                num     =fieldDescription.getIntValue(i, "field_definition_number");
+
+                if (developerDataIndex==devIx && fieldNumber==num)
+                {
+                    field.fieldName             =fieldDescription.getStringValue(i, "field_name");
+                    field.units                 =fieldDescription.getStringValue(i, "units");
+                    field.nativeMessageNumber   =fieldDescription.getIntValue(i, "native_mesg_num");
+                    field.nativeFieldNumber     =fieldDescription.getIntValue(i, "native_field_num");
+                    field.baseTypeId            =fieldDescription.getIntValue(i, "fit_base_type_id");
+                    field.baseType              =FitGlobalProfile.getInstance().getBaseTypeName(field.baseTypeId);
+
+                    found=true;
+                }
+                i++;
+            }        
+        }  
+        else
+        {
+            DebugLogger.error("No field description available for the developer field");
+        }
+        developerFieldDefinitions.add(field);
+        recordLength            +=size;
+        
+    }
     
 
     /**
@@ -260,20 +282,6 @@ public class FitRecord
      */
     public void addRecordValues(int[] bytes)
     {
-
-/*        
-        int i;
-        DebugLogger.info("*** Datamessage "+this.localMessageType);
-        i=0;
-        while (i<this.recordLength)
-        {
-            System.out.print(String.format("%02x ", bytes[i]));
-//            System.out.print(String.format("%c ", bytes[i]));
-//            System.out.println("value "+bytes[i]);
-            i++;
-        }
-        System.out.println();
-*/
         this.recordData.add(bytes);
     }
     
@@ -320,6 +328,38 @@ public class FitRecord
         return field;
     }
 
+    /**
+     * Return a list of field names that are in this record
+     * @return List of field names
+     */
+    public List<String> getMessageFieldNames()
+    {
+        List<String> names;
+        
+        names=new ArrayList<>();
+        for (FitMessageField field:this.globalFieldDefinitions)
+        {
+            names.add(field.definition.fieldName);
+        }
+        return names;
+    }
+    
+    /**
+     * Return a list of field names that are in this record
+     * @return List of field names
+     */
+    public List<String> getDeveloperFieldNames()
+    {
+        List<String> names;
+        
+        names=new ArrayList<>();
+        for (FitDeveloperField field:this.developerFieldDefinitions)
+        {
+            names.add(field.fieldName);
+        }
+        return names;
+    }
+    
     /***************************************************************************\
      * REQUESTING VALUES FROM THE RECORD
      ***************************************************************************/
@@ -639,6 +679,27 @@ public class FitRecord
     
     /**
      * This method returns a particular value of the given field at given index
+     * as enhanced height value. 
+     * @param index Index in the array
+     * @param fieldName Name of the field as in the global profile
+     * @return The lat or lon value or 0.0 if an error occurred.
+     */
+    public double getScaledValue(int index, String fieldName)
+    {
+        int value;
+        double scaledValue;
+        double scale;
+        double offset;
+        
+        scale=this.getMessageField(fieldName).definition.scale;
+        offset=this.getMessageField(fieldName).definition.offset;
+        value=this.getIntValue(index, fieldName);
+        scaledValue=(double)value/scale-offset;
+        return scaledValue;
+    }
+    
+    /**
+     * This method returns a particular value of the given field at given index
      * as Latitude or Longitude value. 
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
@@ -784,8 +845,8 @@ public class FitRecord
         DebugLogger.debug("Global Message Number   :"+this.globalMessageNumber);
         DebugLogger.debug("Header Type             :"+this.headerType.toString());
         DebugLogger.debug("Endianness              :"+this.endianness.toString());
-        DebugLogger.debug("Number of fields        :"+this.numberOfFields);
-        DebugLogger.debug("Number of dev. fields   :"+this.numberOfDeveloperFields);
+        DebugLogger.debug("Number of fields        :"+this.globalFieldDefinitions.size());
+        DebugLogger.debug("Number of dev. fields   :"+this.developerFieldDefinitions.size());
         
         iterator=globalFieldDefinitions.iterator();
         while (iterator.hasNext())
@@ -809,7 +870,7 @@ public class FitRecord
      * Returns the list of devloper message field definitions
      * @return The list
      */
-    public List<FitMessageField> getDeveloperFieldDefintions()
+    public List<FitDeveloperField> getDeveloperFieldDefintions()
     {
         return this.developerFieldDefinitions;
     }

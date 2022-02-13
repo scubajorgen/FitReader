@@ -6,7 +6,9 @@
 package net.studioblueplanet.fitreader;
 
 /**
- *
+ * Represents a global fit profile type value.
+ * For example the type 'mesg_num' has values 'file_id', 'capabilities', etc.
+ * A value has a value name and a value: 'file_id' has value 0
  * @author jorgen
  */
 public class ProfileTypeValue
@@ -39,6 +41,4 @@ public class ProfileTypeValue
     {
         this.value = value;
     }
-
-    
 }

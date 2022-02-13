@@ -12,8 +12,6 @@ package net.studioblueplanet.fitreader;
  */
 public class FitFieldDefinition
 {
-    private static  FitGlobalProfile profile=null;
-    
     public int      messageNumber;
     public String   messageName;
     public int      fieldNumber;

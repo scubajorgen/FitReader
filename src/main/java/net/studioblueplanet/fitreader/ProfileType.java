@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- *
+ * Represents a global fit profile type like 'file' or 'mesg_num'
  * @author jorgen
  */
 public class ProfileType
@@ -23,7 +23,7 @@ public class ProfileType
     {
         this.type       =type;
         this.baseType   =baseType;
-        values=new ArrayList<>();
+        values          =new ArrayList<>();
     }
     
     /**

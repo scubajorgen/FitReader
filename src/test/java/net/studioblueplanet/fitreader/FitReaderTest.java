@@ -154,6 +154,7 @@ public class FitReaderTest
         assertEquals( 126, record.getIntValue(0, "heart_rate"));
         
         
+        
         record=repository.getFitRecord("device_info");
         size=record.getNumberOfRecordValues();
         assertEquals(1, size);
@@ -173,6 +174,37 @@ public class FitReaderTest
         assertEquals(17.0, record.getAltitudeValue(100, "altitude"), 0.000001);
         
     }
+    
+    
+    @Test
+    public void testReadFile2()
+    {
+        FitRecordRepository repository;
+        FitRecord           record;
+        int                 size;
+        int                 i;
+
+        System.out.println("readFile");
+        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
+
+        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
+        
+        record=repository.getFitRecord("record");
+        size=record.getNumberOfRecordValues();   
+        
+        assertEquals(2023, size);
+        assertEquals(12, record.getNumberOfFields());
+        assertEquals( 0, record.getNumberOfDeveloperFields());
+        List<String> fields=record.getMessageFieldNames();
+        for(String field: fields)
+        {
+            DebugLogger.info(field);
+        }
+        assertEquals(53.01270539, record.getLatLonValue(0, "position_lat") , 0.00001);
+        assertEquals( 6.72536795, record.getLatLonValue(0, "position_long"), 0.00001);
+    }
+    
+    
     
     @Test
     public void testRecordRepository()
