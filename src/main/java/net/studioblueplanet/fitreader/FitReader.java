@@ -103,6 +103,8 @@ public class FitReader
         
         bytesRead=parseDataMessage(in, record);
         
+        record.addTimeStampOffset(timeOffset);
+        
         return bytesRead;
     }    
     

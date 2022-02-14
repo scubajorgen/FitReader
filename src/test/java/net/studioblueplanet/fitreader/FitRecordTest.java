@@ -259,9 +259,9 @@ public class FitRecordTest
      * Test of getMessageField method, of class FitRecord.
      */
     @Test
-    public void testGetMessageField()
+    public void testGetMessageField_string()
     {
-        System.out.println("getMessageField");
+        System.out.println("getMessageField based on fieldName");
         FitMessageField result = instance.getMessageField("position_lat");
         assertEquals("position_lat", result.definition.fieldName);
         assertEquals(0, result.definition.fieldNumber);
@@ -279,7 +279,46 @@ public class FitRecordTest
         result = instance.getMessageField("non_existent");
         assertNull(result);
     }
+    
+    /**
+     * Test of the hasField method, of class FitRecord
+     */
+    @Test
+    public void testHasField()
+    {
+        System.out.println("getField");
+        assertEquals(true, instance.hasField("position_lat"));
+        assertEquals(true, instance.hasField("position_long"));
+        assertEquals(true, instance.hasField("heart_rate"));
+        assertEquals(false, instance.hasField("non_existent"));
+    }
 
+    /**
+     * Test of getMessageField method, of class FitRecord.
+     */
+    @Test
+    public void testGetMessageField_int()
+    {
+        System.out.println("getMessageField based on field number");
+        FitMessageField result = instance.getMessageField(0);
+        assertEquals("position_lat", result.definition.fieldName);
+        assertEquals(0, result.definition.fieldNumber);
+        assertEquals(0, result.byteArrayPosition);
+        
+        result = instance.getMessageField(1);
+        assertEquals("position_long", result.definition.fieldName);
+        assertEquals(4, result.byteArrayPosition);
+
+        result = instance.getMessageField(3);
+        assertEquals("heart_rate", result.definition.fieldName);
+        assertEquals("bpm", result.definition.units);
+        assertEquals(10, result.byteArrayPosition);
+
+        result = instance.getMessageField(255);
+        assertNull(result);
+    }
+    
+    
     /**
      * Test of getIntValue method, of class FitRecord.
      */

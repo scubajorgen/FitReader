@@ -10,8 +10,10 @@ import net.studioblueplanet.logger.DebugLogger;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import hirondelle.date4j.DateTime;
 import java.util.TimeZone;
@@ -27,20 +29,26 @@ public class FitRecord
     public enum HeaderType              {NORMAL, COMPRESSED_TIMESTAMP};
     public enum RecordType              {DEFINITION, DATA};
     public enum Endianness              {LITTLEENDIAN, BIGENDIAN};
+    public static final int             TIMESTAMP_INDEX=253;
     
     
     private final HeaderType                    headerType;
-    private int                                 localMessageType;
+    private final int                           localMessageType;
     private Endianness                          endianness;
     private boolean                             hasDeveloperData;
     private int                                 globalMessageNumber;
-    private final List<FitMessageField>         globalFieldDefinitions;
+    private final List<FitMessageField>         fieldDefinitions;
     private final List<FitDeveloperField>       developerFieldDefinitions;
     private final List<int[]>                   recordData;
+    private final Map<Integer, Integer>         timeStamps;
     
     private int                                 recordLength;
     
     private int                                 byteArrayPosition;
+    
+    private boolean                             hasTimeStamp;
+    private static int                          mostRecentTimeStamp=0;
+    private static int                          previousTimeStampOffset=0;
     
     /***************************************************************************\
      * CONSTRUCTOR/DESTRUCTOR
@@ -60,10 +68,12 @@ public class FitRecord
         recordLength            =0;
         endianness              =Endianness.LITTLEENDIAN;
         byteArrayPosition       =0;
+        hasTimeStamp            =false;
         
-        globalFieldDefinitions      =new ArrayList<>();
+        fieldDefinitions      =new ArrayList<>();
         developerFieldDefinitions   =new ArrayList<>();
-        recordData                  =new ArrayList<int[]>();
+        recordData                  =new ArrayList<>();
+        timeStamps                  =new HashMap<>();
     }
     
     /***************************************************************************\
@@ -120,7 +130,7 @@ public class FitRecord
      */
     public int getNumberOfFields()
     {
-        return this.globalFieldDefinitions.size();
+        return this.fieldDefinitions.size();
     }
 
     
@@ -175,12 +185,18 @@ public class FitRecord
             field.size              =size;
             field.byteArrayPosition =byteArrayPosition; // start of the field data in the byte array
             byteArrayPosition       +=size;
-            globalFieldDefinitions.add(field);
+            fieldDefinitions.add(field);
             recordLength            +=size;
         }
         else
         {
             DebugLogger.error("Field not found!");
+        }
+        
+        // This message has a timestamp field
+        if (fieldNumber==TIMESTAMP_INDEX)
+        {
+            hasTimeStamp=true;
         }
         
     }
@@ -253,9 +269,9 @@ public class FitRecord
         FitMessageField field;
         int             fieldSize;
         
-        if (fieldIndex<globalFieldDefinitions.size())
+        if (fieldIndex<fieldDefinitions.size())
         {
-            field=this.globalFieldDefinitions.get(fieldIndex);
+            field=this.fieldDefinitions.get(fieldIndex);
             fieldSize=field.size;
         }
         else
@@ -283,6 +299,42 @@ public class FitRecord
     public void addRecordValues(int[] bytes)
     {
         this.recordData.add(bytes);
+        
+        if (hasTimeStamp)
+        {
+            FitMessageField field=this.getMessageField(TIMESTAMP_INDEX);
+            mostRecentTimeStamp=this.bytesToSignedInt(bytes, field.byteArrayPosition, 4);
+            previousTimeStampOffset=mostRecentTimeStamp & 0x1F;
+        }
+    }
+    
+    /**
+     * In case of a compressed timestamp header: register the offset. This should be done
+     * after the record values have been added.
+     * The FIT specification is not exactly clear. First we assume a compressed timestamp record does
+     * NOT have a timestamp (253) field in the definition message. Prior to the first compressed timestamp
+     * record there must be another record belonging to another message that contain a timestamp (253) field. 
+     * Second, the specification does not definedefine  whether it is obligatory that each data record 
+     * has a compressed timestamp or that it
+     * is allowed to omit the compressed timestamp header (allowing a record not having
+     * a timestamp value). We support the latter.
+     * @param offset The offset to add
+     */
+    public void addTimeStampOffset(int offset)
+    {
+        int timeStamp;
+        
+        if (offset<previousTimeStampOffset)
+        {
+            timeStamp=(mostRecentTimeStamp&0xffffffe0 | offset) + 0x20;
+        }
+        else
+        {
+            timeStamp=mostRecentTimeStamp&0xffffffe0 | offset;
+        }
+        previousTimeStampOffset=offset;
+        
+        timeStamps.put(this.recordData.size()-1, timeStamp);
     }
     
     /**
@@ -305,7 +357,7 @@ public class FitRecord
         FitFieldDefinition          fieldDefinition;
         boolean                     found;
         
-        iterator    =this.globalFieldDefinitions.iterator();
+        iterator    =this.fieldDefinitions.iterator();
         found       =false;
         field       =null;
         
@@ -328,6 +380,42 @@ public class FitRecord
         return field;
     }
 
+    
+    /**
+     * This method finds the field definition by the field number.
+     * @param fieldNumber Number of the field as in the global profile.
+     * @return The field definition or null if not found.
+     */
+    public FitMessageField getMessageField(int fieldNumber)
+    {
+        Iterator<FitMessageField>   iterator;
+        FitMessageField             field;
+        FitFieldDefinition          fieldDefinition;
+        boolean                     found;
+        
+        iterator    =this.fieldDefinitions.iterator();
+        found       =false;
+        field       =null;
+        
+        while (iterator.hasNext() && !found)
+        {
+            field=iterator.next();
+            fieldDefinition=field.definition;
+            if (fieldDefinition!=null)
+            {
+                if (fieldDefinition.fieldNumber==fieldNumber)
+                {
+                    found=true;
+                }
+            }
+        }
+        if (!found)
+        {
+            field=null;
+        }
+        return field;
+    }
+    
     /**
      * Return a list of field names that are in this record
      * @return List of field names
@@ -337,7 +425,7 @@ public class FitRecord
         List<String> names;
         
         names=new ArrayList<>();
-        for (FitMessageField field:this.globalFieldDefinitions)
+        for (FitMessageField field:this.fieldDefinitions)
         {
             names.add(field.definition.fieldName);
         }
@@ -363,7 +451,23 @@ public class FitRecord
     /***************************************************************************\
      * REQUESTING VALUES FROM THE RECORD
      ***************************************************************************/
-    
+
+     public boolean hasField(String fieldName)
+     {
+        boolean hasField;
+        
+        hasField=false;
+        
+        for (FitMessageField field : fieldDefinitions)
+        {
+            if (field.definition.fieldName.equals(fieldName))
+            {
+                hasField=true;
+            }
+        }
+        return hasField;
+     }
+     
     /**
      * Helper method. Converts a section of the byte array to an 
      * unsigned integer value.
@@ -517,8 +621,6 @@ public class FitRecord
         
         field=this.getMessageField(fieldName);
         
-
-        
         if (field!=null)
         {
             if (index<this.recordData.size() && index>=0)
@@ -635,18 +737,41 @@ public class FitRecord
      */
     public DateTime getTimeValue(int index, String fieldName)
     {
+        Integer                     val;
         int                         value;
         DateTime                    dateTime;
         long                        milliseconds;
 
-        value=this.getIntValue(index, fieldName);
-        dateTime=new DateTime("1989-12-31 00:00:00");
-
-        milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-        milliseconds+=(long)value*1000;
-        dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
+        if (hasField("timestamp"))
+        {
+            value=this.getIntValue(index, fieldName);
+        }
+        else
+        {
+            val=timeStamps.get(index);
+            if (val!=null)
+            {
+                value=val.intValue();
+            }
+            else
+            {
+                value=-1;
+            }
+        }
+        if (value>=0)
+        {
+            dateTime=new DateTime("1989-12-31 00:00:00");
+            milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
+            milliseconds+=(long)value*1000;
+            dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
+        }
+        else
+        {
+            dateTime=null;
+        }
         return dateTime;
     }
+    
     /**
      * This method returns a particular value of the given field at given index
      * as TimeStamp value, taking a time zone offset into account.
@@ -660,21 +785,47 @@ public class FitRecord
      */
     public Timestamp getTimeValue(int index, String fieldName, int offset)
     {
+        Integer                     val;
         int                         value;
         DateTime                    dateTime;
         long                        milliseconds;
-
-        value=this.getIntValue(index, fieldName);
-        dateTime=new DateTime("1989-12-31 00:00:00");
-
-        milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-        milliseconds+=(long)value*1000;
-        dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
-        if (offset >= 0)
-            dateTime = dateTime.plus(0,0,0,offset,0,0,0,null);
+        Timestamp                   timeStamp;
+        
+        if (hasField("timestamp"))
+        {
+            value=this.getIntValue(index, fieldName);
+        }
         else
-            dateTime = dateTime.minus(0,0,0,-1 * offset,0,0,0,null);
-        return Timestamp.valueOf(dateTime.toString());
+        {
+            val=timeStamps.get(index);
+            if (val!=null)
+            {
+                value=val.intValue();
+            }
+            else
+            {
+                value=-1;
+            }
+        }
+        if (value>=0)
+        {
+            dateTime=new DateTime("1989-12-31 00:00:00");
+
+            milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
+            milliseconds+=(long)value*1000;
+            dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
+            if (offset >= 0)
+                dateTime = dateTime.plus(0,0,0,offset,0,0,0,null);
+            else
+                dateTime = dateTime.minus(0,0,0,-1 * offset,0,0,0,null);
+            timeStamp=Timestamp.valueOf(dateTime.toString());
+        }
+        else
+        {
+            timeStamp=null;
+        }
+        
+        return timeStamp;
     }
     
     /**
@@ -845,10 +996,10 @@ public class FitRecord
         DebugLogger.debug("Global Message Number   :"+this.globalMessageNumber);
         DebugLogger.debug("Header Type             :"+this.headerType.toString());
         DebugLogger.debug("Endianness              :"+this.endianness.toString());
-        DebugLogger.debug("Number of fields        :"+this.globalFieldDefinitions.size());
+        DebugLogger.debug("Number of fields        :"+this.fieldDefinitions.size());
         DebugLogger.debug("Number of dev. fields   :"+this.developerFieldDefinitions.size());
         
-        iterator=globalFieldDefinitions.iterator();
+        iterator=fieldDefinitions.iterator();
         while (iterator.hasNext())
         {
             field=iterator.next();
@@ -863,7 +1014,7 @@ public class FitRecord
      */
     public List<FitMessageField> getGlobalFieldDefintions()
     {
-        return this.globalFieldDefinitions;
+        return this.fieldDefinitions;
     }
 
     /**

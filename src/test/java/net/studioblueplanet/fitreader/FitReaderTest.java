@@ -106,6 +106,41 @@ public class FitReaderTest
 
         return repository;
     }
+
+
+    /**
+     * Reads a test FIT file.
+     * @return 
+     */
+    private FitRecordRepository compressedTimeStampFile()
+    {
+        FitRecordRepository repository;     
+        FitReader           reader;
+        InputStream         in;
+        byte[]              inputBytes;        
+      
+        reader=FitReader.getInstance();
+        
+        // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
+        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D064C0000002E4649540000"+                          // header
+                
+                                                                   "400000140003FD0486000485010485"+                        // 15 definition message 0x00 - record - timestamp position_lat position_long
+                                                                   "4100001D0002010485020485"+                              // 12 definition message 0x01 - waypoints - position_lat position_long
+
+                                                                   "00250AC628D4118E032CEE71FC"+                           // 13 data message 0x00
+                                                                   "A5D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                                   "A7D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                                   "AFD4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                                   "A2D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                                   
+                
+                                                                   "0000");                                                // crc
+        in=new ByteArrayInputStream(inputBytes);
+
+        repository=reader.readInputStream(in);
+
+        return repository;
+    }
     
     /**
      * Reads a test FIT file.
@@ -202,6 +237,39 @@ public class FitReaderTest
         }
         assertEquals(53.01270539, record.getLatLonValue(0, "position_lat") , 0.00001);
         assertEquals( 6.72536795, record.getLatLonValue(0, "position_long"), 0.00001);
+    }
+    
+    @Test
+    public void testReadCompressedTimeStampFile()
+    {
+        FitRecordRepository repository;
+        FitRecord           record;
+        int                 size;
+        int                 i;
+
+        System.out.println("compressedTimeStampFile");
+        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
+
+        repository=compressedTimeStampFile();
+        
+        record=repository.getFitRecord("record");
+        size=record.getNumberOfRecordValues();   
+        
+        assertEquals(1, size);
+        assertEquals("2011-09-04 10:42:45.000000000", record.getTimeValue(0, "timestamp").toString());
+        assertEquals( 4.9991618469, record.getLatLonValue(0, "position_lat") , 0.0000001);
+        assertEquals(-4.9991618469, record.getLatLonValue(0, "position_long"), 0.0000001);
+        
+        
+        // Compressed timestamps
+        record=repository.getFitRecord("waypoints");
+        size=record.getNumberOfRecordValues();   
+        assertEquals(4, size);
+        assertEquals("2011-09-04 10:42:45.000000000", record.getTimeValue(0, "timestamp").toString());
+        assertEquals("2011-09-04 10:42:47.000000000", record.getTimeValue(1, "timestamp").toString());
+        assertEquals("2011-09-04 10:42:55.000000000", record.getTimeValue(2, "timestamp").toString());
+        assertEquals("2011-09-04 10:43:14.000000000", record.getTimeValue(3, "timestamp").toString());
+         
     }
     
     
