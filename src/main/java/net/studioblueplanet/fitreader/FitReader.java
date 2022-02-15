@@ -21,7 +21,7 @@ public class FitReader
 {
     private static FitReader    theInstance=null;
 
-    private FitRecordRepository repository;
+    private FitMessageRepository repository;
 
     
     int[] crc_table =
@@ -65,7 +65,7 @@ public class FitReader
      * @param record The record to add the data to
      * @throws IOException In case of misread
      */
-    private int parseDataMessage(InputStream in, FitRecord record) throws IOException
+    private int parseDataMessage(InputStream in, FitMessage record) throws IOException
     {
         int     i;
         int     bytesRead;
@@ -76,7 +76,7 @@ public class FitReader
         bytesRead=0;
         
         i=0;
-        recordSize=record.getRecordLength();
+        recordSize=record.getRecordSize();
         bytes=new int[recordSize];
         while (i<recordSize)
         {
@@ -84,7 +84,7 @@ public class FitReader
             bytesRead++;
             i++;
         }
-        record.addRecordValues(bytes);
+        record.addDataRecord(bytes);
         return bytesRead;
     }
     
@@ -95,7 +95,7 @@ public class FitReader
      * @param record The record to add the data to
      * @throws IOException In case of misread
      */
-    private int parseCompressedTimestampDataMessage(InputStream in, FitRecord record, int timeOffset) throws IOException
+    private int parseCompressedTimestampDataMessage(InputStream in, FitMessage record, int timeOffset) throws IOException
     {
         int bytesRead;
         
@@ -114,7 +114,7 @@ public class FitReader
      * @param record The record to add the definition to
      * @throws IOException In case of misread
      */
-    private int parseDefinitionMessage(InputStream in, FitRecord record, boolean hasDeveloperData) throws IOException
+    private int parseDefinitionMessage(InputStream in, FitMessage record, boolean hasDeveloperData) throws IOException
     {
         int bytesRead;
         int architecture;
@@ -141,11 +141,11 @@ public class FitReader
         bytesRead++;
         if (architecture>0)
         {
-            record.setEndianness(FitRecord.Endianness.BIGENDIAN);
+            record.setEndianness(FitMessage.Endianness.BIGENDIAN);
         }
         else
         {
-            record.setEndianness(FitRecord.Endianness.LITTLEENDIAN);
+            record.setEndianness(FitMessage.Endianness.LITTLEENDIAN);
         }
         
         // Message Number
@@ -184,7 +184,7 @@ public class FitReader
                 fieldDefinitionNumber   =in.read();
                 size                    =in.read();
                 developerDataIndex                =in.read();
-                record.addDeveloperField(globalMessageNumber, fieldDefinitionNumber, size, developerDataIndex, repository.getFitRecord("field_description"));
+                record.addDeveloperField(globalMessageNumber, fieldDefinitionNumber, size, developerDataIndex, repository.getFitMessage("field_description"));
                 bytesRead               +=3;
                 i++;
             }
@@ -208,12 +208,12 @@ public class FitReader
      * @return The number of bytes read
      * @throws IOException In case of miss read
      */
-    private int readRecord(InputStream in, FitRecordRepository repository) throws IOException
+    private int readRecord(InputStream in, FitMessageRepository repository) throws IOException
     {
-        FitRecord                   record;
+        FitMessage                   record;
         int                         bytesRead;
         int                         recordHeader;
-        FitRecord.HeaderType        headerType;
+        FitMessage.HeaderType        headerType;
         int                         localMessageType;
         int                         timeOffset;
         boolean                     hasDeveloperData;
@@ -234,7 +234,7 @@ public class FitReader
         // This bit defines the encoding of the rest of the byte
         if ((recordHeader&0x80)!=0)
         {
-            headerType      =FitRecord.HeaderType.COMPRESSED_TIMESTAMP;
+            headerType      =FitMessage.HeaderType.COMPRESSED_TIMESTAMP;
             localMessageType=(recordHeader&0x60)>>5;
             timeOffset      =recordHeader&0x1F;
 
@@ -242,7 +242,7 @@ public class FitReader
             // Compressed timestamp Data Message
 
             // Find the record to add the data to
-            record=repository.getFitRecord(localMessageType);
+            record=repository.getFitMessage(localMessageType);
             // Check if the record has been found
             if (record!=null)
             {
@@ -256,7 +256,7 @@ public class FitReader
         else
         {
             // The header type - bit 7
-            headerType      =FitRecord.HeaderType.NORMAL;
+            headerType      =FitMessage.HeaderType.NORMAL;
             
             // The local message type - bit 0-2 - (0-15)
             localMessageType=recordHeader&0x0F;
@@ -279,20 +279,20 @@ public class FitReader
             if ((recordHeader&0x40)!=0)
             {
                 // DEFINITION MESSGAGE
-                record=repository.getFitRecord(localMessageType);
+                record=repository.getFitMessage(localMessageType);
                 if (record!=null)
                 {
                     DebugLogger.debug("Record with local message number "+localMessageType+" already exists. Creating new definition!");
                 }
                 
                 // Create a new record
-                record=new FitRecord(localMessageType, headerType, hasDeveloperData);
+                record=new FitMessage(localMessageType, headerType, hasDeveloperData);
                 // Parse the data (field definitions)
                 bytesRead+=this.parseDefinitionMessage(in, record, hasDeveloperData);
                 // Add the record to the repository
-                repository.addFitRecord(record);
+                repository.addFitMessage(record);
                 // Dump the record information
-                record.dumpRecord();
+                record.dumpMessage();
 
             }
             else
@@ -310,7 +310,7 @@ public class FitReader
                 }
 
                 // Find the record to add the data to
-                record=repository.getFitRecord(localMessageType);
+                record=repository.getFitMessage(localMessageType);
                 // Check if the record has been found
                 if (record!=null)
                 {
@@ -343,7 +343,7 @@ public class FitReader
     }
 
 
-    public FitRecordRepository readInputStream(InputStream in)
+    public FitMessageRepository readInputStream(InputStream in)
     {
         FitHeader               fitHeader;
         FitReader               fitReader;
@@ -351,7 +351,7 @@ public class FitReader
         int                     bytesRead;
         int                     crc;
      
-        repository=new FitRecordRepository();
+        repository=new FitMessageRepository();
 
         try 
         {
@@ -407,9 +407,9 @@ public class FitReader
      * @param fileName Name of the file to parse.
      * @return The FitRecordRepository
      */
-    public FitRecordRepository readFile(String fileName)
+    public FitMessageRepository readFile(String fileName)
     {
-        FitRecordRepository repo;
+        FitMessageRepository repo;
         FileInputStream in;
         
         repo=null;

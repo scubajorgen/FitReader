@@ -14,23 +14,22 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import hirondelle.date4j.DateTime;
 import java.util.TimeZone;
+import hirondelle.date4j.DateTime;
 
 
 /**
- * This class represents a full FIT record. It contains the record 
- * definition, but also the record values.
+ * This class represents a full FIT message. It contains the message 
+ * definition, but also the records belonging to this message.
  * @author Jorgen
  */
-public class FitRecord
+public class FitMessage
 {
     public enum HeaderType              {NORMAL, COMPRESSED_TIMESTAMP};
     public enum RecordType              {DEFINITION, DATA};
     public enum Endianness              {LITTLEENDIAN, BIGENDIAN};
-    public static final int             TIMESTAMP_INDEX=253;
-    
+
+    public static final int                     TIMESTAMP_INDEX=253;
     
     private final HeaderType                    headerType;
     private final int                           localMessageType;
@@ -59,7 +58,7 @@ public class FitRecord
      * @param headerType
      * @param hasDeveloperData 
      */
-    public FitRecord(int localMessageType, HeaderType headerType, boolean hasDeveloperData)
+    public FitMessage(int localMessageType, HeaderType headerType, boolean hasDeveloperData)
     {
         this.localMessageType   =localMessageType;
         this.headerType         =headerType;
@@ -91,7 +90,7 @@ public class FitRecord
 
     
     /**
-     * Returns the endianness that is used in the file for this record.
+     * Returns the endianness that is used in the file for this message.
      * It does not affect the way the data is stored in this class!
      * @return The BIGENDIAN or LITTLEENDIAN
      */
@@ -118,15 +117,18 @@ public class FitRecord
         this.endianness=endianness;
     }
     
+    /**
+     * Defines whether this message contains developer data
+     * @param hasDeveloperData New value for the definition
+     */
     public void setHasDeveloperData(boolean hasDeveloperData)
     {
         this.hasDeveloperData=hasDeveloperData;
     }
     
-    
     /**
      * Returns the number of fields
-     * @return The number of fields defined in this record
+     * @return The number of fields defined in this message
      */
     public int getNumberOfFields()
     {
@@ -136,7 +138,7 @@ public class FitRecord
     
     /**
      * Returns the number of fields
-     * @return The number of fields defined in this record
+     * @return The number of fields defined in this message
      */
     public int getNumberOfDeveloperFields()
     {
@@ -144,7 +146,7 @@ public class FitRecord
     }
     
     /**
-     * Sets the global message number (ID for this record according to the
+     * Sets the global message number (ID for this message according to the
      * global profile)
      * @param globalMessageNumber The global message number 
      */
@@ -153,6 +155,10 @@ public class FitRecord
         this.globalMessageNumber=globalMessageNumber;
     }
     
+    /**
+     * Returns the global message number of this message
+     * @return The global message number
+     */
     public int getGlobalMessageNumber()
     {
         return this.globalMessageNumber;
@@ -208,7 +214,7 @@ public class FitRecord
      * @param size Field length in bytes
      * @param developerDataIndex Index. 
      */
-    public void addDeveloperField(int globalMessageNumber, int fieldNumber, int size, int developerDataIndex, FitRecord fieldDescription)
+    public void addDeveloperField(int globalMessageNumber, int fieldNumber, int size, int developerDataIndex, FitMessage fieldDescription)
     {
         int                 i;
         int                 devIx;
@@ -230,7 +236,7 @@ public class FitRecord
         {
             i=0;
             found=false;
-            while (i<fieldDescription.getRecordLength() && !found)
+            while (i<fieldDescription.getRecordSize() && !found)
             {
                 devIx   =fieldDescription.getIntValue(i, "developer_data_index");
                 num     =fieldDescription.getIntValue(i, "field_definition_number");
@@ -283,10 +289,10 @@ public class FitRecord
     }
     
     /**
-     * Get the total length record in bytes. It is the sum of the field sizes;
+     * Get the total size of a data record in bytes. It is the sum of the field sizes;
      * @return The record length
      */
-    public int getRecordLength()
+    public int getRecordSize()
     {
         return recordLength;
     }
@@ -296,9 +302,16 @@ public class FitRecord
      * The raw bytes are stored in the bytes array
      * @param bytes Array with the raw bytes 
      */
-    public void addRecordValues(int[] bytes)
+    public void addDataRecord(int[] bytes)
     {
-        this.recordData.add(bytes);
+        if (bytes.length== recordLength)
+        {
+            this.recordData.add(bytes);
+        }
+        else
+        {
+            DebugLogger.error("Record size not ok: expected "+recordLength+" bytes, received "+bytes.length+" bytes");
+        }
         
         if (hasTimeStamp)
         {
@@ -309,12 +322,12 @@ public class FitRecord
     }
     
     /**
-     * In case of a compressed timestamp header: register the offset. This should be done
+     * In case of a compressed timestamp header: register the offset. This must be done
      * after the record values have been added.
      * The FIT specification is not exactly clear. First we assume a compressed timestamp record does
      * NOT have a timestamp (253) field in the definition message. Prior to the first compressed timestamp
      * record there must be another record belonging to another message that contain a timestamp (253) field. 
-     * Second, the specification does not definedefine  whether it is obligatory that each data record 
+     * Second, the specification does not define whether it is obligatory that each data record 
      * has a compressed timestamp or that it
      * is allowed to omit the compressed timestamp header (allowing a record not having
      * a timestamp value). We support the latter.
@@ -338,9 +351,9 @@ public class FitRecord
     }
     
     /**
-     * Returns the number of values stored with this record
+     * Returns the number of records stored with this message
      */
-    public int getNumberOfRecordValues()
+    public int getNumberOfRecords()
     {
         return this.recordData.size();
     }
@@ -417,7 +430,7 @@ public class FitRecord
     }
     
     /**
-     * Return a list of field names that are in this record
+     * Return a list of field names that are in this message
      * @return List of field names
      */
     public List<String> getMessageFieldNames()
@@ -433,7 +446,7 @@ public class FitRecord
     }
     
     /**
-     * Return a list of field names that are in this record
+     * Return a list of developer field names that are in this message
      * @return List of field names
      */
     public List<String> getDeveloperFieldNames()
@@ -452,6 +465,12 @@ public class FitRecord
      * REQUESTING VALUES FROM THE RECORD
      ***************************************************************************/
 
+    /**
+     * Indicates whether this message has a field definition containing the 
+     * given field name
+     * @param fieldName Field name to look for
+     * @return True if a field definition exists
+     */
      public boolean hasField(String fieldName)
      {
         boolean hasField;
@@ -608,7 +627,7 @@ public class FitRecord
     
     /**
      * This method returns a particular value of the given field at given index.
-     * @param index Index in the array
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The integer value or zero if an error occurred
      */
@@ -678,7 +697,7 @@ public class FitRecord
 
     /**
      * This method returns a particular value of the given field at given index.
-     * @param index Index in the array
+     * @param index Index Record index
      * @param fieldName Name of the field as in the global profile
      * @return Long integer
      */
@@ -731,7 +750,7 @@ public class FitRecord
      * as DateTime value. Many of the records in the FIT global profile
      * contain a uint32 DateTime value. It represents the number of seconds
      * since 31-12-1989 00:00.
-     * @param index Index in the array
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The DateTime value or null if an error occurred.
      */
@@ -778,7 +797,7 @@ public class FitRecord
      * Many of the records in the FIT global profile
      * contain a uint32 DateTime value. It represents the number of seconds
      * since 31-12-1989 00:00.
-     * @param index Index in the array
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @param offset Number of hours difference to GMT
      * @return The DateTime value or null if an error occurred.
@@ -830,10 +849,11 @@ public class FitRecord
     
     /**
      * This method returns a particular value of the given field at given index
-     * as enhanced height value. 
-     * @param index Index in the array
+     * as scaled value. Scale and Offset as in the global field definition are used
+     * to scale and offset
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
-     * @return The lat or lon value or 0.0 if an error occurred.
+     * @return The scaled value or 0.0 if an error occurred.
      */
     public double getScaledValue(int index, String fieldName)
     {
@@ -852,7 +872,7 @@ public class FitRecord
     /**
      * This method returns a particular value of the given field at given index
      * as Latitude or Longitude value. 
-     * @param index Index in the array
+     * @param index IRecord index
      * @param fieldName Name of the field as in the global profile
      * @return The lat or lon value or 0.0 if an error occurred.
      */
@@ -887,7 +907,7 @@ public class FitRecord
     /**
      * This method returns a particular value of the given field at given index
      * as enhanced speed value. 
-     * @param index Index in the array
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The speed value or 0.0 if an error occurred.
      */
@@ -904,7 +924,7 @@ public class FitRecord
     /**
      * This method returns a particular value of the given field at given index
      * as a number of seconds
-     * @param index Index in the array
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The number of seconds elapsed
      */
@@ -936,8 +956,9 @@ public class FitRecord
     }
     
     /**
-     * This method returns a particular value of the given field at given index.
-     * @param index Index in the array
+     * This method returns a particular value of the given field at given index
+     * as String.
+     * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The value as string
      */
@@ -984,7 +1005,7 @@ public class FitRecord
     /**
      * Debug function: dump the record contents
      */
-    public void dumpRecord()
+    public void dumpMessage()
     {
         Iterator<FitMessageField>   iterator;
         FitMessageField             field;
@@ -1009,16 +1030,16 @@ public class FitRecord
     }
     
     /**
-     * Returns the list of message field definitions
+     * Returns the list of message field definitions within this message
      * @return The list
      */
-    public List<FitMessageField> getGlobalFieldDefintions()
+    public List<FitMessageField> getFieldDefintions()
     {
         return this.fieldDefinitions;
     }
 
     /**
-     * Returns the list of devloper message field definitions
+     * Returns the list of devloper message field definitions within this message
      * @return The list
      */
     public List<FitDeveloperField> getDeveloperFieldDefintions()

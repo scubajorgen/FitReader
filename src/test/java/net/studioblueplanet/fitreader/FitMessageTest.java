@@ -20,12 +20,12 @@ import org.junit.Ignore;
  *
  * @author jorgen
  */
-public class FitRecordTest
+public class FitMessageTest
 {
-    private FitRecord instance;
-    private FitRecord developerFieldDefinition;    
+    private FitMessage instance;
+    private FitMessage developerFieldDefinition;    
     
-    public FitRecordTest()
+    public FitMessageTest()
     {
     }
     
@@ -42,7 +42,7 @@ public class FitRecordTest
     @Before
     public void setUp()
     {
-        developerFieldDefinition=new FitRecord(122, FitRecord.HeaderType.NORMAL, false);
+        developerFieldDefinition=new FitMessage(122, FitMessage.HeaderType.NORMAL, false);
         developerFieldDefinition.setGlobalMessageNumber(206);       // 'field_description'
         developerFieldDefinition.addMessageField(206,  3, 10,   7);    // 'field_name'
         developerFieldDefinition.addMessageField(206,  8, 10,   7);    // 'units'
@@ -54,14 +54,14 @@ public class FitRecordTest
         int[] record1={'t', 'e', 's', 't', '1', 0, 0, 0, 0, 0,
                        'b', 'p', 'm',   0, 0, 0, 0, 0, 0, 0,
                        123, 0, 234, 2, 3, 2};
-       int[] record2={'t', 'e', 's', 't', '2', 0, 0, 0, 0, 0,
+        int[] record2={'t', 'e', 's', 't', '2', 0, 0, 0, 0, 0,
                       'm', 'm', 0,   0, 0, 0, 0, 0, 0, 0,
                        124, 0, 235, 2, 3, 3};
-        developerFieldDefinition.addRecordValues(record1);
-        developerFieldDefinition.addRecordValues(record2);
+        developerFieldDefinition.addDataRecord(record1);
+        developerFieldDefinition.addDataRecord(record2);
         
         
-        instance=new FitRecord(123, FitRecord.HeaderType.NORMAL, true);
+        instance=new FitMessage(123, FitMessage.HeaderType.NORMAL, true);
         instance.setGlobalMessageNumber(20);         // 'record' message
         instance.addMessageField(20,   0, 4, 133);    // 'position_lat'
         instance.addMessageField(20,   1, 4, 133);    // 'position_long'
@@ -81,7 +81,7 @@ public class FitRecordTest
                       100,0,0,0,
                       200,0,
                       10};
-        instance.addRecordValues(record);
+        instance.addDataRecord(record);
         
     }
     
@@ -107,10 +107,10 @@ public class FitRecordTest
     public void testGetSetEndianness()
     {
         System.out.println("getSetEndianness");
-        instance.setEndianness(FitRecord.Endianness.BIGENDIAN);
-        assertEquals(FitRecord.Endianness.BIGENDIAN, instance.getEndianness());
-        instance.setEndianness(FitRecord.Endianness.LITTLEENDIAN);
-        assertEquals(FitRecord.Endianness.LITTLEENDIAN, instance.getEndianness());
+        instance.setEndianness(FitMessage.Endianness.BIGENDIAN);
+        assertEquals(FitMessage.Endianness.BIGENDIAN, instance.getEndianness());
+        instance.setEndianness(FitMessage.Endianness.LITTLEENDIAN);
+        assertEquals(FitMessage.Endianness.LITTLEENDIAN, instance.getEndianness());
     }
 
     /**
@@ -120,9 +120,9 @@ public class FitRecordTest
     public void testIsLittleEndian()
     {
         System.out.println("isLittleEndian");
-        instance.setEndianness(FitRecord.Endianness.BIGENDIAN);
+        instance.setEndianness(FitMessage.Endianness.BIGENDIAN);
         assertEquals(false, instance.isLittleEndian());
-        instance.setEndianness(FitRecord.Endianness.LITTLEENDIAN);
+        instance.setEndianness(FitMessage.Endianness.LITTLEENDIAN);
         assertEquals(true, instance.isLittleEndian());
     }
 
@@ -214,22 +214,22 @@ public class FitRecordTest
     }
 
     /**
-     * Test of getRecordLength method, of class FitRecord.
+     * Test of getRecordSize method, of class FitRecord.
      */
     @Test
-    public void testGetRecordLength()
+    public void testGetRecordSize()
     {
         System.out.println("getRecordLength");
-        assertEquals(26, this.developerFieldDefinition.getRecordLength());
+        assertEquals(26, this.developerFieldDefinition.getRecordSize());
     }
 
     /**
-     * Test of addRecordValues method, of class FitRecord.
+     * Test of addDataRecord method, of class FitRecord.
      */
     @Test
-    public void testAddRecordValues()
+    public void testAddDataRecord()
     {
-        System.out.println("addRecordValues");
+        System.out.println("addDataRecord");
         int[] record={0x80, 0xF0, 0xFA, 0x02,
                       0x02, 0xFA, 0xF0, 0x80,
                       100, 0,
@@ -238,8 +238,8 @@ public class FitRecordTest
                       100,0,0,0,
                       5,0,
                       11};
-        instance.addRecordValues(record);
-        assertEquals(2, instance.getNumberOfRecordValues());
+        instance.addDataRecord(record);
+        assertEquals(2, instance.getNumberOfRecords());
         assertEquals(96, instance.getIntValue(1, "heart_rate"));
         assertEquals(50000000, instance.getIntValue(1, "position_lat"));
     }
@@ -251,8 +251,8 @@ public class FitRecordTest
     public void testGetNumberOfRecordValues()
     {
         System.out.println("getNumberOfRecordValues");
-        assertEquals(2, developerFieldDefinition.getNumberOfRecordValues());
-        assertEquals(1, instance.getNumberOfRecordValues());
+        assertEquals(2, developerFieldDefinition.getNumberOfRecords());
+        assertEquals(1, instance.getNumberOfRecords());
     }
 
     /**
@@ -439,7 +439,7 @@ public class FitRecordTest
     public void testGetGlobalFieldDefintions()
     {
         System.out.println("getGlobalFieldDefintions");
-        List<FitMessageField> result = instance.getGlobalFieldDefintions();
+        List<FitMessageField> result = instance.getFieldDefintions();
         assertEquals(7, result.size());
         assertEquals("position_lat", result.get(0).definition.fieldName);
     }

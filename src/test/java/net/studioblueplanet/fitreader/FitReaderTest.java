@@ -14,9 +14,6 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 
 
@@ -73,9 +70,9 @@ public class FitReaderTest
      * Reads a test FIT file.
      * @return 
      */
-    private FitRecordRepository readTestFitFile()
+    private FitMessageRepository readTestFitFile()
     {
-        FitRecordRepository repository;     
+        FitMessageRepository repository;     
         FitReader           reader;
         InputStream         in;
         byte[]              inputBytes;        
@@ -112,9 +109,9 @@ public class FitReaderTest
      * Reads a test FIT file.
      * @return 
      */
-    private FitRecordRepository compressedTimeStampFile()
+    private FitMessageRepository compressedTimeStampFile()
     {
-        FitRecordRepository repository;     
+        FitMessageRepository repository;     
         FitReader           reader;
         InputStream         in;
         byte[]              inputBytes;        
@@ -146,12 +143,12 @@ public class FitReaderTest
      * Reads a test FIT file.
      * @return 
      */
-    private FitRecordRepository readFitFile(String fileName)
+    private FitMessageRepository readFitFile(String fileName)
     {
-        FitRecordRepository repository;     
-        FitReader           reader;
-        InputStream         in;
-        byte[]              inputBytes;        
+        FitMessageRepository    repository;     
+        FitReader               reader;
+        InputStream             in;
+        byte[]                  inputBytes;        
       
         repository=null;
         reader=FitReader.getInstance();
@@ -165,48 +162,48 @@ public class FitReaderTest
     @Test
     public void testReadFile()
     {
-        FitRecordRepository repository;
-        FitRecord           record;
-        int                 size;
-        int                 i;
+        FitMessageRepository    repository;
+        FitMessage               message;
+        int                     size;
+        int                     i;
 
         System.out.println("readFile");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=this.readFitFile("src/test/resources/Activity.fit");
         
-        record=repository.getFitRecord("record");
-        size=record.getNumberOfRecordValues();
+        message=repository.getFitMessage("record");
+        size=message.getNumberOfRecords();
     
         assertEquals(3601, size);
-        assertEquals(9, record.getNumberOfFields());
-        assertEquals(1, record.getNumberOfDeveloperFields());
+        assertEquals(9, message.getNumberOfFields());
+        assertEquals(1, message.getNumberOfDeveloperFields());
         
-        assertEquals("2021-07-20 21:11:20.000000000"    , record.getTimeValue        (0, "timestamp").toString());
-        assertEquals(   0, record.getIntValue(0, "distance"));
-        assertEquals(1000, record.getIntValue(1, "speed"));
-        assertEquals( 1.0, record.getSpeedValue(1, "speed"), 0.0001);
-        assertEquals( 126, record.getIntValue(0, "heart_rate"));
+        assertEquals("2021-07-20 21:11:20.000000000"    , message.getTimeValue        (0, "timestamp").toString());
+        assertEquals(   0, message.getIntValue(0, "distance"));
+        assertEquals(1000, message.getIntValue(1, "speed"));
+        assertEquals( 1.0, message.getSpeedValue(1, "speed"), 0.0001);
+        assertEquals( 126, message.getIntValue(0, "heart_rate"));
         
         
         
-        record=repository.getFitRecord("device_info");
-        size=record.getNumberOfRecordValues();
+        message=repository.getFitMessage("device_info");
+        size=message.getNumberOfRecords();
         assertEquals(1, size);
-        assertEquals("FIT Cookbook", record.getStringValue(0, "product_name"));
-        assertEquals(1457061125, record.getIntValue(0, "serial_number"));
+        assertEquals("FIT Cookbook", message.getStringValue(0, "product_name"));
+        assertEquals(1457061125, message.getIntValue(0, "serial_number"));
 
         
         repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
         
-        record=repository.getFitRecord("record");
-        size=record.getNumberOfRecordValues();
+        message=repository.getFitMessage("record");
+        size=message.getNumberOfRecords();
     
         assertEquals(2023, size);
         
-        assertEquals(53.0190818477, record.getLatLonValue(100, "position_lat"), 0.00000001);
-        assertEquals(6.7377460096, record.getLatLonValue(100, "position_long"), 0.00000001);
-        assertEquals(17.0, record.getAltitudeValue(100, "altitude"), 0.000001);
+        assertEquals(53.0190818477, message.getLatLonValue(100, "position_lat"), 0.00000001);
+        assertEquals(6.7377460096, message.getLatLonValue(100, "position_long"), 0.00000001);
+        assertEquals(17.0, message.getAltitudeValue(100, "altitude"), 0.000001);
         
     }
     
@@ -214,121 +211,121 @@ public class FitReaderTest
     @Test
     public void testReadFile2()
     {
-        FitRecordRepository repository;
-        FitRecord           record;
-        int                 size;
-        int                 i;
+        FitMessageRepository    repository;
+        FitMessage               message;
+        int                     size;
+        int                     i;
 
         System.out.println("readFile");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
         
-        record=repository.getFitRecord("record");
-        size=record.getNumberOfRecordValues();   
+        message=repository.getFitMessage("record");
+        size=message.getNumberOfRecords();   
         
         assertEquals(2023, size);
-        assertEquals(12, record.getNumberOfFields());
-        assertEquals( 0, record.getNumberOfDeveloperFields());
-        List<String> fields=record.getMessageFieldNames();
+        assertEquals(12, message.getNumberOfFields());
+        assertEquals( 0, message.getNumberOfDeveloperFields());
+        List<String> fields=message.getMessageFieldNames();
         for(String field: fields)
         {
             DebugLogger.info(field);
         }
-        assertEquals(53.01270539, record.getLatLonValue(0, "position_lat") , 0.00001);
-        assertEquals( 6.72536795, record.getLatLonValue(0, "position_long"), 0.00001);
+        assertEquals(53.01270539, message.getLatLonValue(0, "position_lat") , 0.00001);
+        assertEquals( 6.72536795, message.getLatLonValue(0, "position_long"), 0.00001);
     }
     
     @Test
     public void testReadCompressedTimeStampFile()
     {
-        FitRecordRepository repository;
-        FitRecord           record;
-        int                 size;
-        int                 i;
+        FitMessageRepository    repository;
+        FitMessage               message;
+        int                     size;
+        int                     i;
 
         System.out.println("compressedTimeStampFile");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=compressedTimeStampFile();
         
-        record=repository.getFitRecord("record");
-        size=record.getNumberOfRecordValues();   
+        message=repository.getFitMessage("record");
+        size=message.getNumberOfRecords();   
         
         assertEquals(1, size);
-        assertEquals("2011-09-04 10:42:45.000000000", record.getTimeValue(0, "timestamp").toString());
-        assertEquals( 4.9991618469, record.getLatLonValue(0, "position_lat") , 0.0000001);
-        assertEquals(-4.9991618469, record.getLatLonValue(0, "position_long"), 0.0000001);
+        assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());
+        assertEquals( 4.9991618469, message.getLatLonValue(0, "position_lat") , 0.0000001);
+        assertEquals(-4.9991618469, message.getLatLonValue(0, "position_long"), 0.0000001);
         
         
         // Compressed timestamps
-        record=repository.getFitRecord("waypoints");
-        size=record.getNumberOfRecordValues();   
+        message=repository.getFitMessage("waypoints");
+        size=message.getNumberOfRecords();   
         assertEquals(4, size);
-        assertEquals("2011-09-04 10:42:45.000000000", record.getTimeValue(0, "timestamp").toString());
-        assertEquals("2011-09-04 10:42:47.000000000", record.getTimeValue(1, "timestamp").toString());
-        assertEquals("2011-09-04 10:42:55.000000000", record.getTimeValue(2, "timestamp").toString());
-        assertEquals("2011-09-04 10:43:14.000000000", record.getTimeValue(3, "timestamp").toString());
+        assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());
+        assertEquals("2011-09-04 10:42:47.000000000", message.getTimeValue(1, "timestamp").toString());
+        assertEquals("2011-09-04 10:42:55.000000000", message.getTimeValue(2, "timestamp").toString());
+        assertEquals("2011-09-04 10:43:14.000000000", message.getTimeValue(3, "timestamp").toString());
          
     }
     
     
     
     @Test
-    public void testRecordRepository()
+    public void testMessageRepository()
     {
-        FitRecordRepository repository;
-        List<String>   messages;
+        FitMessageRepository    repository;
+        List<String>            messages;
         
-        System.out.println("FitRecordRepository");
+        System.out.println("FitMessageRepository");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
         
         repository=this.readFitFile("src/test/resources/Activity.fit");
         
-        System.out.println("Fields: "+repository.getMessages().toString());
+        System.out.println("Fields: "+repository.getMessageNames().toString());
         
-        messages=repository.getMessages();
+        messages=repository.getMessageNames();
         
         assertEquals("file_id", messages.get(0));
         assertEquals("device_info", messages.get(1));
         assertEquals("event", messages.get(2));
         assertEquals("activity", messages.get(10));
         
-        assertEquals(true, repository.recordExists(0));
-        assertEquals(false, repository.recordExists(1));
-        assertEquals(false, repository.recordExists(4));
+        assertEquals(true, repository.messageExists(0));
+        assertEquals(false, repository.messageExists(1));
+        assertEquals(false, repository.messageExists(4));
         
-        assertNotEquals(null, repository.getFitRecord("file_id"));
-        assertEquals(null, repository.getFitRecord("blah_blah"));
+        assertNotEquals(null, repository.getFitMessage("file_id"));
+        assertEquals(null, repository.getFitMessage("blah_blah"));
         
-        assertNotNull(repository.getFitRecord(0));
-        assertNull(repository.getFitRecord(4));
-        assertNull(repository.getFitRecord(-1));
+        assertNotNull(repository.getFitMessage(0));
+        assertNull(repository.getFitMessage(4));
+        assertNull(repository.getFitMessage(-1));
     }
 
     @Test
     public void testLocationsRepository()
     {
-        FitRecordRepository repository;
-        List<String>   messages;
+        FitMessageRepository    repository;
+        List<String>            messages;
         
-        System.out.println("FitRecordRepository");
+        System.out.println("FitMessageRepository");
         DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_DEBUG);
         
         repository=this.readFitFile("src/test/resources/LocationsEdge810.fit");
         
-        System.out.println("Fields: "+repository.getMessages().toString());
+        System.out.println("Fields: "+repository.getMessageNames().toString());
         
-        messages=repository.getMessages();
+        messages=repository.getMessageNames();
         
         // The 'waypoint' field (id=29) no longer exists...
         assertEquals("waypoints", messages.get(2));
         
         repository=this.readFitFile("src/test/resources/LocationsEdge830.fit");
         
-        System.out.println("Fields: "+repository.getMessages().toString());
+        System.out.println("Fields: "+repository.getMessageNames().toString());
         
-        messages=repository.getMessages();
+        messages=repository.getMessageNames();
         
         // The 'waypoint' field (id=29) no longer exists...
         assertEquals("waypoints", messages.get(2));
