@@ -5,8 +5,6 @@
  */
 package net.studioblueplanet.fitreader;
 
-import hirondelle.date4j.DateTime;
-import java.sql.Timestamp;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,7 +41,7 @@ public class FitMessageTest
     public void setUp()
     {
         developerFieldDefinition=new FitMessage(122, FitMessage.HeaderType.NORMAL, false);
-        developerFieldDefinition.setGlobalMessageNumber(206);       // 'field_description'
+        developerFieldDefinition.setGlobalMessageNumber(206);          // 'field_description'
         developerFieldDefinition.addMessageField(206,  3, 10,   7);    // 'field_name'
         developerFieldDefinition.addMessageField(206,  8, 10,   7);    // 'units'
         developerFieldDefinition.addMessageField(206, 14,  2, 132);    // 'native_mesg_num' - uint16
@@ -57,8 +55,12 @@ public class FitMessageTest
         int[] record2={'t', 'e', 's', 't', '2', 0, 0, 0, 0, 0,
                       'm', 'm', 0,   0, 0, 0, 0, 0, 0, 0,
                        124, 0, 235, 2, 3, 3};
+        int[] record3={'t', 'e', 's', 't', '3', 0, 0, 0, 0, 0,
+                      'm', 'm', 0,   0, 0, 0, 0, 0, 0, 0,
+                       125, 0, 236, 7, 3, 4};
         developerFieldDefinition.addDataRecord(record1);
         developerFieldDefinition.addDataRecord(record2);
+        developerFieldDefinition.addDataRecord(record3);
         
         
         instance=new FitMessage(123, FitMessage.HeaderType.NORMAL, true);
@@ -72,6 +74,8 @@ public class FitMessageTest
         instance.addMessageField(20,   6, 2, 132);    // 'speed'
         
         instance.addDeveloperField(20, 2, 1, 3, developerFieldDefinition);
+        instance.addDeveloperField(20, 4, 8, 3, developerFieldDefinition);
+
         
         int[] record={0xD4, 0x11, 0x8E, 0x03,
                       0x2C, 0xEE, 0x71, 0xFC,
@@ -80,7 +84,8 @@ public class FitMessageTest
                       0, 0, 0, 0,
                       100,0,0,0,
                       200,0,
-                      10};
+                      10,
+                      's', 't', 'r', 'i', 'n', 'g', 0, 0};
         instance.addDataRecord(record);
         
     }
@@ -154,7 +159,9 @@ public class FitMessageTest
     public void testGetNumberOfDeveloperFields()
     {
         System.out.println("getNumberOfDeveloperFields");
-        assertEquals(1, instance.getNumberOfDeveloperFields());
+        assertEquals(2, instance.getNumberOfDeveloperFields());
+        instance.addDeveloperField(20, 3, 1, 3, developerFieldDefinition);
+        assertEquals(3, instance.getNumberOfDeveloperFields());
     }
 
     /**
@@ -193,10 +200,10 @@ public class FitMessageTest
     {
         System.out.println("addDeveloperField");
 
-        assertEquals(1, instance.getNumberOfDeveloperFields());
-        instance.addDeveloperField(20, 3, 1, 3, developerFieldDefinition);
         assertEquals(2, instance.getNumberOfDeveloperFields());
-        FitDeveloperField field=instance.getDeveloperFieldDefintions().get(1);
+        instance.addDeveloperField(20, 3, 1, 3, developerFieldDefinition);
+        assertEquals(3, instance.getNumberOfDeveloperFields());
+        FitDeveloperField field=instance.getDeveloperFieldDefintions().get(2);
         assertEquals("test2", field.fieldName);
         assertEquals(124, field.nativeMessageNumber);
         assertEquals(235, field.nativeFieldNumber);
@@ -237,11 +244,15 @@ public class FitMessageTest
                       0, 0, 0, 0,
                       100,0,0,0,
                       5,0,
-                      11};
+                      11,
+                      's', 't', 'r', 'i', 'n', 'g', 0, 0};
         instance.addDataRecord(record);
         assertEquals(2, instance.getNumberOfRecords());
         assertEquals(96, instance.getIntValue(1, "heart_rate"));
         assertEquals(50000000, instance.getIntValue(1, "position_lat"));
+
+        assertEquals(11, instance.getIntValue(1, "test1", true));
+
     }
 
     /**
@@ -251,7 +262,7 @@ public class FitMessageTest
     public void testGetNumberOfRecordValues()
     {
         System.out.println("getNumberOfRecordValues");
-        assertEquals(2, developerFieldDefinition.getNumberOfRecords());
+        assertEquals(3, developerFieldDefinition.getNumberOfRecords());
         assertEquals(1, instance.getNumberOfRecords());
     }
 
@@ -281,6 +292,22 @@ public class FitMessageTest
     }
     
     /**
+     * Test of getDeveloperField method, of class FitRecord.
+     */
+    @Test
+    public void testGetDeveloperField_string()
+    {
+        System.out.println("getDeveloperField based on fieldName");
+        FitDeveloperField result = instance.getDeveloperField("test1");
+        assertEquals("test1", result.fieldName);
+        assertEquals(2, result.fieldNumber);
+        assertEquals(21, result.byteArrayPosition);
+
+        result = instance.getDeveloperField("non_existent");
+        assertNull(result);
+    }
+    
+    /**
      * Test of the hasField method, of class FitRecord
      */
     @Test
@@ -291,6 +318,21 @@ public class FitMessageTest
         assertEquals(true, instance.hasField("position_long"));
         assertEquals(true, instance.hasField("heart_rate"));
         assertEquals(false, instance.hasField("non_existent"));
+    }
+
+    /**
+     * Test of the hasDeveloperField method, of class FitRecord
+     */
+    @Test
+    public void testHasDeveloperField()
+    {
+        System.out.println("getDeveloperField");
+        assertEquals(true, instance.hasDeveloperField("test1"));
+        assertEquals(false, instance.hasDeveloperField("test2"));
+        assertEquals(false, instance.hasDeveloperField("non_existent"));
+        instance.addDeveloperField(20, 3, 1, 3, developerFieldDefinition);
+        assertEquals(true, instance.hasDeveloperField("test2"));
+
     }
 
     /**
@@ -318,6 +360,22 @@ public class FitMessageTest
         assertNull(result);
     }
     
+    /**
+     * Test of getMessageField method, of class FitRecord.
+     */
+    @Test
+    public void testGetDeveloperField_int()
+    {
+        System.out.println("getDeveloperField based on field number");
+        FitDeveloperField result = instance.getDeveloperField(2);
+        assertEquals("test1", result.fieldName);
+        assertEquals(2, result.fieldNumber);
+        assertEquals(21, result.byteArrayPosition);
+    
+        result = instance.getDeveloperField(255);
+        assertNull(result);
+    }
+    
     
     /**
      * Test of getIntValue method, of class FitRecord.
@@ -326,7 +384,17 @@ public class FitMessageTest
     public void testGetIntValue()
     {
         System.out.println("getIntValue");
+        // Message field value
+        assertEquals(59642324, instance.getIntValue(0, "position_lat", false));
+        assertEquals(0, instance.getIntValue(0, "non_existent", false));
+
         assertEquals(59642324, instance.getIntValue(0, "position_lat"));
+        assertEquals(0, instance.getIntValue(0, "non_existent"));
+        
+        
+        // Developer field value
+        assertEquals(10, instance.getIntValue(0, "test1", true));
+        assertEquals(0, instance.getIntValue(0, "non_existent", true));
     }
 
     /**
@@ -428,7 +496,17 @@ public class FitMessageTest
     @Test
     public void testGetStringValue()
     {
+        // regular message fields
+        assertEquals("test1", developerFieldDefinition.getStringValue(0, "field_name", false));
         assertEquals("test1", developerFieldDefinition.getStringValue(0, "field_name"));
+
+        // developer field
+        assertEquals("string", instance.getStringValue(0, "test3", true));
+        
+        // Non existing
+        assertNull(developerFieldDefinition.getStringValue(0, "non_existent"));
+        assertNull(developerFieldDefinition.getStringValue(0, "non_existent", true));
+        assertNull(developerFieldDefinition.getStringValue(0, "non_existent", false));
     }
 
 
@@ -453,7 +531,7 @@ public class FitMessageTest
         System.out.println("getDeveloperFieldDefintions");
         List<FitDeveloperField> result = instance.getDeveloperFieldDefintions();
         
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
         assertEquals(2, result.get(0).fieldNumber);
         assertEquals(3, result.get(0).developerDataIndex);
         assertEquals("test1", result.get(0).fieldName);
@@ -461,6 +539,12 @@ public class FitMessageTest
         assertEquals(123, result.get(0).nativeMessageNumber);
         assertEquals(234, result.get(0).nativeFieldNumber);
         assertEquals("uint8", result.get(0).baseType);
+
+        assertEquals(4, result.get(1).fieldNumber);
+        assertEquals(3, result.get(1).developerDataIndex);
+        assertEquals(7, result.get(1).baseTypeId);
+        assertEquals("string", result.get(1).baseType);
+        assertEquals("test3", result.get(1).fieldName);
     }
     
     @Test
@@ -486,8 +570,9 @@ public class FitMessageTest
         System.out.println("getDeveloperFieldNames");
         List<String> names=instance.getDeveloperFieldNames();
         
-        assertEquals(1, names.size());
+        assertEquals(2, names.size());
         assertEquals("test1", names.get(0));
+        assertEquals("test3", names.get(1));
     }
     
 }

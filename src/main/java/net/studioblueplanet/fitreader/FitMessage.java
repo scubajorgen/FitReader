@@ -222,8 +222,6 @@ public class FitMessage
         FitDeveloperField   field;
         boolean             found;
         
-        
-        
         field                   =new FitDeveloperField();
         field.fieldNumber       =fieldNumber;
         field.developerDataIndex=developerDataIndex;
@@ -238,16 +236,16 @@ public class FitMessage
             found=false;
             while (i<fieldDescription.getRecordSize() && !found)
             {
-                devIx   =fieldDescription.getIntValue(i, "developer_data_index");
-                num     =fieldDescription.getIntValue(i, "field_definition_number");
+                devIx   =fieldDescription.getIntValue(i, "developer_data_index", false);
+                num     =fieldDescription.getIntValue(i, "field_definition_number", false);
 
                 if (developerDataIndex==devIx && fieldNumber==num)
                 {
                     field.fieldName             =fieldDescription.getStringValue(i, "field_name");
                     field.units                 =fieldDescription.getStringValue(i, "units");
-                    field.nativeMessageNumber   =fieldDescription.getIntValue(i, "native_mesg_num");
-                    field.nativeFieldNumber     =fieldDescription.getIntValue(i, "native_field_num");
-                    field.baseTypeId            =fieldDescription.getIntValue(i, "fit_base_type_id");
+                    field.nativeMessageNumber   =fieldDescription.getIntValue(i, "native_mesg_num", false);
+                    field.nativeFieldNumber     =fieldDescription.getIntValue(i, "native_field_num", false);
+                    field.baseTypeId            =fieldDescription.getIntValue(i, "fit_base_type_id", false);
                     field.baseType              =FitGlobalProfile.getInstance().getBaseTypeName(field.baseTypeId);
 
                     found=true;
@@ -395,6 +393,26 @@ public class FitMessage
         return field;
     }
 
+    /**
+     * This method finds the developer field definition by the field name.
+     * @param fieldName Name of the field as in the global profile.
+     * @return The field definition or null if not found.
+     */
+    public FitDeveloperField getDeveloperField(String fieldName)
+    {
+        FitDeveloperField           theField;
+
+        theField=null;
+        for (FitDeveloperField field : this.developerFieldDefinitions)
+        {
+            if (field.fieldName.equals(fieldName))
+            {
+                theField=field;
+            }
+        }
+        return theField;
+    }
+    
     
     /**
      * This method finds the field definition by the field number.
@@ -429,6 +447,26 @@ public class FitMessage
             field=null;
         }
         return field;
+    }
+    
+    /**
+     * This method finds the developer field definition by the field number.
+     * @param fieldNumber Number of the field as in the global profile.
+     * @return The field definition or null if not found.
+     */
+    public FitDeveloperField getDeveloperField(int fieldNumber)
+    {
+        FitDeveloperField           theField;
+
+        theField=null;
+        for (FitDeveloperField field : this.developerFieldDefinitions)
+        {
+            if (field.fieldNumber==fieldNumber)
+            {
+                theField=field;
+            }
+        }
+        return theField;
     }
     
     /**
@@ -489,57 +527,110 @@ public class FitMessage
         return hasField;
      }
      
+     
+     public boolean hasDeveloperField(String fieldName)
+     {
+        boolean hasField;
+        
+        hasField=false;
+        
+        for (FitDeveloperField field : developerFieldDefinitions)
+        {
+            if (field.fieldName.equals(fieldName))
+            {
+                hasField=true;
+            }
+        }
+        return hasField;
+     }
     
+     
     /**
-     * This method returns a particular value of the given field at given index.
+     * This method returns a particular value of the given message field at given index.
      * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The integer value or zero if an error occurred
      */
     public int getIntValue(int index, String fieldName)
     {
+        return getIntValue(index, fieldName, false);
+    }
+    
+    /**
+     * This method returns a particular value of the given field 
+     * (message field or developer field) at given index.
+     * @param index Record index
+     * @param fieldName Name of the field as in the global profile
+     * @param developerField Indicates whether a developer field is requested (true)
+     *                       or a regular message field (false)
+     * @return The integer value or zero if an error occurred
+     */
+    public int getIntValue(int index, String fieldName, boolean developerField)
+    {
         int                         value;
         FitMessageField             field;
+        FitDeveloperField           devField;
+        int                         arrayPosition;
+        int                         baseType;
         
-        value=0;
+        value           =0;
+        arrayPosition   =-1;
+        baseType        =-1;
         
-        field=this.getMessageField(fieldName);
+        if (developerField)
+        {
+            devField=getDeveloperField(fieldName);
+            if (devField!=null)
+            {
+                arrayPosition=devField.byteArrayPosition;
+                baseType=devField.baseTypeId;
+            }
+        }
+        else
+        {
+            field=this.getMessageField(fieldName);
+            if (field!=null)
+            {
+                arrayPosition=field.byteArrayPosition;
+                baseType=field.baseType;
+            }
+        }
         
-        if (field!=null)
+        if (arrayPosition>=0)
         {
             if (index<this.records.size() && index>=0)
             {
-                switch (field.baseType)
+                switch (baseType)
                 {
                     case 0x00: // enum
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
                     case 0x01: // sint8 - 2s complement
-                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToSignedInt(arrayPosition, 1);
                         break;
                     case 0x02: // uint8 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
                     case 0x83: // sint16 - 2s complement 
-                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToSignedInt(arrayPosition, 2);
                         break;
                     case 0x84: // uint16 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 2);
                         break;
                     case 0x85: // sint32 - 2s complement 
-                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToSignedInt(arrayPosition, 4);
                         break;
                     case 0x86: // uint32 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
                     case 0x0A: // uint8z 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
                     case 0x8B: // uint16z 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 2);
                         break;
                     case 0x8C: // uint32z 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
                     default:
                         DebugLogger.info("Retrieving record value: value is not a integer");
@@ -560,6 +651,7 @@ public class FitMessage
         return value;
     }
 
+    
     /**
      * This method returns a particular value of the given field at given index.
      * @param index Index Record index
@@ -568,27 +660,63 @@ public class FitMessage
      */
     public long getLongValue(int index, String fieldName)
     {
-        long                         value;
+        return getLongValue(index, fieldName, false);
+    }
+    
+    /**
+     * This method returns a particular value of the given field 
+     * (regular message field or devoper field) at given index.
+     * @param index Index Record index
+     * @param fieldName Name of the field as in the global profile
+     * @param developerField Indicates whether a developer field is requested (true)
+     *                       or a regular message field (false)
+     * @return Long integer
+     */
+    public long getLongValue(int index, String fieldName, boolean developerField)
+    {
+        long                        value;
         FitMessageField             field;
+        FitDeveloperField           devField;
+        int                         arrayPosition;
+        int                         baseType;
         
-        value=0;
+        value           =0L;
+        arrayPosition   =-1;
+        baseType        =-1;
         
-        field=this.getMessageField(fieldName);
-        
-        if (field!=null)
+        if (developerField)
+        {
+            devField=getDeveloperField(fieldName);
+            if (devField!=null)
+            {
+                arrayPosition=devField.byteArrayPosition;
+                baseType=devField.baseTypeId;
+            }
+        }
+        else
+        {
+            field=this.getMessageField(fieldName);
+            if (field!=null)
+            {
+                arrayPosition=field.byteArrayPosition;
+                baseType=field.baseType;
+            }
+        }
+
+        if (arrayPosition>=0)
         {
             if (index<records.size() && index>=0)
             {
-                switch (field.baseType)
+                switch (baseType)
                 {
                     case 0x8E: // sint64 - 2s complement 
-                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToSignedInt(arrayPosition, 8);
                         break;
                     case 0x8F: // uint64 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
                     case 0x90: // uint64z 
-                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
                     default:
                         DebugLogger.info("Retrieving record value: value is not a long");
@@ -604,8 +732,6 @@ public class FitMessage
         {
             DebugLogger.info("Retrieving record value: Field with name "+fieldName+" not found.");
         }
-        
-        
         return value;
     }
 
@@ -729,7 +855,7 @@ public class FitMessage
         
         scale=this.getMessageField(fieldName).definition.scale;
         offset=this.getMessageField(fieldName).definition.offset;
-        value=this.getIntValue(index, fieldName);
+        value=this.getIntValue(index, fieldName, false);
         scaledValue=(double)value/scale-offset;
         return scaledValue;
     }
@@ -821,7 +947,7 @@ public class FitMessage
     }
     
     /**
-     * This method returns a particular value of the given field at given index
+     * This method returns a particular value of the given message field at given index
      * as String.
      * @param index Record index
      * @param fieldName Name of the field as in the global profile
@@ -829,20 +955,59 @@ public class FitMessage
      */
     public String getStringValue(int index, String fieldName)
     {
+        return getStringValue(index, fieldName, false);
+    }
+    
+    /**
+     * This method returns a particular value of the given field 
+     * (regular message field or developer field) at given index
+     * as String.
+     * @param index Record index
+     * @param fieldName Name of the field as in the global profile
+     * @return The value as string or null if not found
+     */
+    public String getStringValue(int index, String fieldName, boolean developerField)
+    {
         String                      value;
         FitMessageField             field;
+        FitDeveloperField           devField;
+        int                         arrayPosition;
+        int                         baseType;
+        int                         size;
         
+        value           =null;
+        arrayPosition   =-1;
+        baseType        =-1;
+        size            =0;
         
-        value   ="";
-        field   =this.getMessageField(fieldName);
+        if (developerField)
+        {
+            devField=getDeveloperField(fieldName);
+            if (devField!=null)
+            {
+                arrayPosition   =devField.byteArrayPosition;
+                baseType        =devField.baseTypeId;
+                size            =devField.size;
+            }
+        }
+        else
+        {
+            field=this.getMessageField(fieldName);
+            if (field!=null)
+            {
+                arrayPosition   =field.byteArrayPosition;
+                baseType        =field.baseType;
+                size            =field.size;
+            }
+        }
         
-        if (field!=null)
+        if (arrayPosition>=0)
         {
             if (index<this.records.size() && index>=0)
             {
-                if (field.baseType==0x07) // String
+                if (baseType==0x07) // String
                 {
-                    value=records.get(index).bytesToString(field.byteArrayPosition, field.size);
+                    value=records.get(index).bytesToString(arrayPosition, size);
                 }
                 else
                 {

@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
-
 import net.studioblueplanet.logger.DebugLogger;
 
 /**
@@ -180,18 +179,20 @@ public class FitReaderTest
         assertEquals(1, message.getNumberOfDeveloperFields());
         
         assertEquals("2021-07-20 21:11:20.000000000"    , message.getTimeValue        (0, "timestamp").toString());
-        assertEquals(   0, message.getIntValue(0, "distance"));
-        assertEquals(1000, message.getIntValue(1, "speed"));
+        assertEquals(   0, message.getIntValue(0, "distance", false));
+        assertEquals(1000, message.getIntValue(1, "speed", false));
         assertEquals( 1.0, message.getSpeedValue(1, "speed"), 0.0001);
-        assertEquals( 126, message.getIntValue(0, "heart_rate"));
+        assertEquals( 126, message.getIntValue(0, "heart_rate", false));
         
+        // Developer field
+        assertEquals( 126, message.getIntValue(0, "Heart Rate", true));
         
         
         message=repository.getFitMessage("device_info");
         size=message.getNumberOfRecords();
         assertEquals(1, size);
         assertEquals("FIT Cookbook", message.getStringValue(0, "product_name"));
-        assertEquals(1457061125, message.getIntValue(0, "serial_number"));
+        assertEquals(1457061125, message.getIntValue(0, "serial_number", false));
 
         
         repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
