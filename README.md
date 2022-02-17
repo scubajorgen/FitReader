@@ -13,15 +13,33 @@ Note: Apparently with updates of the Global FIT Profile, messages are added. How
 
 
 ## Working of the software
-.FIT files are converted to a **FitRecordRepository**, consisting of **FitRecord**s for each .FIT defined FIT Message.
-The main function is **FitReader:readFile()**, which does the reading and conversion to the **FitRecordRepository**. The **FitRecordRepository** can be used to obtain the message content definition and data. 
+.FIT files are converted to a **FitRecordRepository**, consisting of **FitMessage**s for each .FIT defined FIT Message.
 
-Messages (message and field names) are defined in /src/main/resources/Profile.xlsx (this file originates from the .FIT SDK that can be downloaded at the [ANT site](https://www.thisisant.com/resources/fit); this SDK also contains PDFs describing the .FIT format). However, implementers like Garmin appear to have added their own proprietary fields which are not defined in the Excel sheet.
+A **FitMessage** consists of
+* **FitMessageField**s defining the local message structure referring to the Global FIT profile
+* optional **FitDeveloperField**s defining developer defined fields.
+* **FitDataRecord**s, records containing data conform the field definitions
+
+The global FIT profile is read into **FitGlobalProfile** from the excel file enclosed in de Garmin/ANT FIT SDK. The profile definition consists of data types and global message field definitions.
+
+**FitReader** is the entry point of the library. It offers functions to read FIT files. The main function is **FitReader:readFile()**, which does the reading and conversion and results in the **FitRecordRepository** containing the read **FitMessage**s. The **FitMessageRepository** can be used to obtain the message definition and data. 
+
+![](image/design.png)
+
+
+Messages (message and field names) are defined in /src/main/resources/Profile.xlsx (this file originates from the .FIT SDK that can be downloaded at the [ANT site](https://www.thisisant.com/resources/fit); this SDK also contains PDFs describing the .FIT format). However, implementers like Garmin appear to have added their own proprietary fields which are not defined in the Excel sheet. 
+
+Developer fields within a message are defined in the FIT file itself, by means of two regular fields (_developer_data_id_ and _field_description_).
+
 
 # Building
-Use Maven to compile the source files into /target. The project is recognized by Netbeans as Maven project and can be imported.
+Use Maven to compile the source files into /target. The project is recognized by Netbeans as Maven project and can be imported. Or build manually:
 
-Usage is illustrated in the test files.
+```
+mvn clean install
+```
+
+This results in two jar files: one library and one for the javadoc. Usage is illustrated in the test files.
 
 
 # Dependencies
