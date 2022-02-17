@@ -38,7 +38,7 @@ public class FitMessage
     private int                                 globalMessageNumber;
     private final List<FitMessageField>         fieldDefinitions;
     private final List<FitDeveloperField>       developerFieldDefinitions;
-    private final List<int[]>                   recordData;
+    private final List<FitDataRecord>           records;
     private final Map<Integer, Integer>         timeStamps;
     
     private int                                 recordLength;
@@ -71,7 +71,7 @@ public class FitMessage
         
         fieldDefinitions      =new ArrayList<>();
         developerFieldDefinitions   =new ArrayList<>();
-        recordData                  =new ArrayList<>();
+        records                     =new ArrayList<>();
         timeStamps                  =new HashMap<>();
     }
     
@@ -304,20 +304,22 @@ public class FitMessage
      */
     public void addDataRecord(int[] bytes)
     {
+        FitDataRecord record;
+        
         if (bytes.length== recordLength)
         {
-            this.recordData.add(bytes);
+            record=new FitDataRecord(bytes, endianness);
+            this.records.add(record);
+            if (hasTimeStamp)
+            {
+                FitMessageField field=this.getMessageField(TIMESTAMP_INDEX);
+                mostRecentTimeStamp=record.bytesToSignedInt(field.byteArrayPosition, 4);
+                previousTimeStampOffset=mostRecentTimeStamp & 0x1F;
+            }
         }
         else
         {
             DebugLogger.error("Record size not ok: expected "+recordLength+" bytes, received "+bytes.length+" bytes");
-        }
-        
-        if (hasTimeStamp)
-        {
-            FitMessageField field=this.getMessageField(TIMESTAMP_INDEX);
-            mostRecentTimeStamp=this.bytesToSignedInt(bytes, field.byteArrayPosition, 4);
-            previousTimeStampOffset=mostRecentTimeStamp & 0x1F;
         }
     }
     
@@ -347,7 +349,7 @@ public class FitMessage
         }
         previousTimeStampOffset=offset;
         
-        timeStamps.put(this.recordData.size()-1, timeStamp);
+        timeStamps.put(this.records.size()-1, timeStamp);
     }
     
     /**
@@ -355,7 +357,7 @@ public class FitMessage
      */
     public int getNumberOfRecords()
     {
-        return this.recordData.size();
+        return this.records.size();
     }
     
     /**
@@ -487,143 +489,6 @@ public class FitMessage
         return hasField;
      }
      
-    /**
-     * Helper method. Converts a section of the byte array to an 
-     * unsigned integer value.
-     * @param bytes  Byte array
-     * @param offset Start within the array
-     * @param size   Number of bytes
-     * @return The integer
-     */
-    private int bytesToUnsignedInt(int[] bytes, int offset, int size)
-    {
-        int i;
-        int value;
-        
-        i=0;
-        value=0;
-        while (i<size)
-        {
-            if (this.endianness==Endianness.LITTLEENDIAN)
-            {
-                value |= bytes[offset+i]<<(8*i);
-            }
-            else
-            {
-                value |= bytes[offset+i]<<(8*(size-i-1));
-            }
-            i++;
-        }
-        return value;
-    }
-    
-    /**
-     * Helper method. Converts a section of the byte array to  
-     * signed integer value.
-     * @param bytes  Byte array
-     * @param offset Start within the array
-     * @param size   Number of bytes
-     * @return The integer
-     */
-    private int bytesToSignedInt(int[] bytes, int offset, int size)
-    {
-        int     value;
-        boolean sign;
-        
-        value=this.bytesToUnsignedInt(bytes, offset, size);
-        
-
-        sign=(value & (1<<(8*size-1)))>0;
-        
-        if (sign)
-        {
-            value|= (((int)-1)<<(8*size));
-        }
-        
-        return value;
-    }
-
-    /**
-     * Helper method. Converts a section of the byte array to an 
-     * unsigned long integer value.
-     * @param bytes  Byte array
-     * @param offset Start within the array
-     * @param size   Number of bytes
-     * @return The integer
-     */
-    private long bytestToUnsignedLong(int[] bytes, int offset, int size)
-    {
-        int i;
-        long value;
-        
-        i=0;
-        value=0;
-        while (i<size)
-        {
-            if (this.endianness==Endianness.LITTLEENDIAN)
-            {
-                value |= bytes[offset+i]<<(8*i);
-            }
-            else
-            {
-                value |= bytes[offset+i]<<(8*(size-i-1));
-            }
-            i++;
-        }
-        return value;
-    }
-    
-    /**
-     * Helper method. Converts a section of the byte array to  
-     * signed long integer value.
-     * @param bytes  Byte array
-     * @param offset Start within the array
-     * @param size   Number of bytes
-     * @return The integer
-     */
-    private long bytesToSignedLong(int[] bytes, int offset, int size)
-    {
-        long    value;
-        boolean sign;
-        
-        value=this.bytesToUnsignedInt(bytes, offset, size);
-        
-        sign=(value & (1<<(8*size-1)))>0;
-        
-        if (sign)
-        {
-           value|= (((long)-1)<<(8*size));
-        }
-        
-        return value;
-    }
-    
-    
-    /**
-     * Helper method. Converts a section of the byte array to  
-     * a string. All bytes are copied to the string. Not used bytes
-     * are assumed to be zero.
-     * @param bytes  Byte array
-     * @param offset Start within the array
-     * @param size   Number of bytes
-     * @return The String
-     */
-    private String bytesToString(int[] bytes, int offset, int size)
-    {
-        String string;
-        int i;
-        
-        string="";
-
-        i=0;
-        while (i<size && bytes[offset+i]!='\0')
-        {
-            string+=String.format("%c", bytes[offset+i]);
-            i++;
-        }
-        
-        return string;
-    }
     
     /**
      * This method returns a particular value of the given field at given index.
@@ -642,39 +507,39 @@ public class FitMessage
         
         if (field!=null)
         {
-            if (index<this.recordData.size() && index>=0)
+            if (index<this.records.size() && index>=0)
             {
                 switch (field.baseType)
                 {
                     case 0x00: // enum
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
                         break;
                     case 0x01: // sint8 - 2s complement
-                        value=this.bytesToSignedInt(this.recordData.get(index), field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 1);
                         break;
                     case 0x02: // uint8 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
                         break;
                     case 0x83: // sint16 - 2s complement 
-                        value=this.bytesToSignedInt(this.recordData.get(index), field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 2);
                         break;
                     case 0x84: // uint16 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 2);
                         break;
                     case 0x85: // sint32 - 2s complement 
-                        value=this.bytesToSignedInt(this.recordData.get(index), field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 4);
                         break;
                     case 0x86: // uint32 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 4);
                         break;
                     case 0x0A: // uint8z 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 1);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 1);
                         break;
                     case 0x8B: // uint16z 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 2);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 2);
                         break;
                     case 0x8C: // uint32z 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 4);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 4);
                         break;
                     default:
                         DebugLogger.info("Retrieving record value: value is not a integer");
@@ -712,18 +577,18 @@ public class FitMessage
         
         if (field!=null)
         {
-            if (index<this.recordData.size() && index>=0)
+            if (index<records.size() && index>=0)
             {
                 switch (field.baseType)
                 {
                     case 0x8E: // sint64 - 2s complement 
-                        value=this.bytesToSignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToSignedInt(field.byteArrayPosition, 8);
                         break;
                     case 0x8F: // uint64 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 8);
                         break;
                     case 0x90: // uint64z 
-                        value=this.bytesToUnsignedInt(this.recordData.get(index), field.byteArrayPosition, 8);
+                        value=records.get(index).bytesToUnsignedInt(field.byteArrayPosition, 8);
                         break;
                     default:
                         DebugLogger.info("Retrieving record value: value is not a long");
@@ -973,11 +838,11 @@ public class FitMessage
         
         if (field!=null)
         {
-            if (index<this.recordData.size() && index>=0)
+            if (index<this.records.size() && index>=0)
             {
                 if (field.baseType==0x07) // String
                 {
-                    value=this.bytesToString(this.recordData.get(index), field.byteArrayPosition, field.size);
+                    value=records.get(index).bytesToString(field.byteArrayPosition, field.size);
                 }
                 else
                 {
@@ -1001,7 +866,6 @@ public class FitMessage
     /***************************************************************************\
      * DEBUGGING
      ***************************************************************************/
-    
     /**
      * Debug function: dump the record contents
      */
