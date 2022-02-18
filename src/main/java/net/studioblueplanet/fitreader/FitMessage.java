@@ -234,7 +234,7 @@ public class FitMessage
         {
             i=0;
             found=false;
-            while (i<fieldDescription.getRecordSize() && !found)
+            while (i<fieldDescription.getNumberOfRecords() && !found)
             {
                 devIx   =fieldDescription.getIntValue(i, "developer_data_index", false);
                 num     =fieldDescription.getIntValue(i, "field_definition_number", false);
