@@ -748,20 +748,21 @@ public class FitMessage
     public DateTime getTimeValue(int index, String fieldName)
     {
         Integer                     val;
-        int                         value;
+        long                        value;
         DateTime                    dateTime;
         long                        milliseconds;
 
         if (hasField("timestamp"))
         {
             value=this.getIntValue(index, fieldName);
+            value&=0xFFFFFFFFL;
         }
         else
         {
             val=timeStamps.get(index);
             if (val!=null)
             {
-                value=val.intValue();
+                value=val&0xFFFFFFFFL;
             }
             else
             {
@@ -772,7 +773,7 @@ public class FitMessage
         {
             dateTime=new DateTime("1989-12-31 00:00:00");
             milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-            milliseconds+=(long)value*1000;
+            milliseconds+=value*1000L;
             dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
         }
         else
@@ -796,7 +797,7 @@ public class FitMessage
     public Timestamp getTimeValue(int index, String fieldName, int offset)
     {
         Integer                     val;
-        int                         value;
+        long                        value;
         DateTime                    dateTime;
         long                        milliseconds;
         Timestamp                   timeStamp;
@@ -804,13 +805,14 @@ public class FitMessage
         if (hasField("timestamp"))
         {
             value=this.getIntValue(index, fieldName);
+            value&=0xFFFFFFFFL;
         }
         else
         {
             val=timeStamps.get(index);
             if (val!=null)
             {
-                value=val.intValue();
+                value=val&0xFFFFFFFFL;
             }
             else
             {
@@ -822,7 +824,7 @@ public class FitMessage
             dateTime=new DateTime("1989-12-31 00:00:00");
 
             milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-            milliseconds+=(long)value*1000;
+            milliseconds+=value*1000L;
             dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
             if (offset >= 0)
                 dateTime = dateTime.plus(0,0,0,offset,0,0,0,null);

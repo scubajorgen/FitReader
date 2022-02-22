@@ -77,7 +77,7 @@ public class FitMessageTest
         instance.addDeveloperField(20, 4, 8, 3, developerFieldDefinition);
 
         
-        int[] record={0xD4, 0x11, 0x8E, 0x03,
+        int[] record4={0xD4, 0x11, 0x8E, 0x03,
                       0x2C, 0xEE, 0x71, 0xFC,
                       0xC9, 0x09,
                       100,
@@ -86,8 +86,27 @@ public class FitMessageTest
                       200,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
-        instance.addDataRecord(record);
-        
+        instance.addDataRecord(record4);
+        int[] record5={0xD4, 0x11, 0x8E, 0x03,
+                      0x2C, 0xEE, 0x71, 0xFC,
+                      0xC9, 0x09,
+                      100,
+                      60, 0, 0, 0,
+                      100,0,0,0,
+                      200,0,
+                      10,
+                      's', 't', 'r', 'i', 'n', 'g', 0, 0};
+        int[] record6={0xD4, 0x11, 0x8E, 0x03,
+                      0x2C, 0xEE, 0x71, 0xFC,
+                      0xC9, 0x09,
+                      100,
+                      0xFF, 0xFF, 0xFF, 0xFF,
+                      100,0,0,0,
+                      200,0,
+                      10,
+                      's', 't', 'r', 'i', 'n', 'g', 0, 0};
+        instance.addDataRecord(record5);        
+        instance.addDataRecord(record6);          
     }
     
     @After
@@ -246,12 +265,12 @@ public class FitMessageTest
                       5,0,
                       11,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
+        assertEquals(3, instance.getNumberOfRecords());
         instance.addDataRecord(record);
-        assertEquals(2, instance.getNumberOfRecords());
-        assertEquals(96, instance.getIntValue(1, "heart_rate"));
-        assertEquals(50000000, instance.getIntValue(1, "position_lat"));
-
-        assertEquals(11, instance.getIntValue(1, "test1", true));
+        assertEquals(4, instance.getNumberOfRecords());
+        assertEquals(96, instance.getIntValue(3, "heart_rate"));
+        assertEquals(50000000, instance.getIntValue(3, "position_lat"));
+        assertEquals(11, instance.getIntValue(3, "test1", true));
 
     }
 
@@ -263,7 +282,7 @@ public class FitMessageTest
     {
         System.out.println("getNumberOfRecordValues");
         assertEquals(3, developerFieldDefinition.getNumberOfRecords());
-        assertEquals(1, instance.getNumberOfRecords());
+        assertEquals(3, instance.getNumberOfRecords());
     }
 
     /**
@@ -414,7 +433,10 @@ public class FitMessageTest
     public void testGetTimeValue_int_String()
     {
         System.out.println("getTimeValue");
+        
         assertEquals("1989-12-31 00:00:00", instance.getTimeValue(0, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
+        assertEquals("1989-12-31 00:01:00", instance.getTimeValue(1, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
+        assertEquals("2126-02-06 06:28:15", instance.getTimeValue(2, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
     }
 
     /**
@@ -426,6 +448,8 @@ public class FitMessageTest
         System.out.println("getTimeValue");
         assertEquals("1989-12-31 01:00:00.0", instance.getTimeValue(0, "timestamp",  1).toString());
         assertEquals("1989-12-30 22:00:00.0", instance.getTimeValue(0, "timestamp", -2).toString());
+        assertEquals("1989-12-31 02:01:00.0", instance.getTimeValue(1, "timestamp", 2).toString());
+        assertEquals("2126-02-06 06:28:15.0", instance.getTimeValue(2, "timestamp", 0).toString());
     }
 
     /**
