@@ -128,5 +128,22 @@ public class FitDataRecordTest
         assertEquals("test", instanceLE.bytesToString(8, 8));
         assertEquals("test", instanceBE.bytesToString(8, 8));
     }
+
+    /**
+     * Test of isInvalidValue method, of class FitDataRecord.
+     */
+    @Test
+    public void testIsInvalidValue()
+    {
+        assertEquals(true , FitDataRecord.isInvalidValue(0xFF, FitDataRecord.BASETYPE_BYTE));
+        assertEquals(false, FitDataRecord.isInvalidValue(0x7F, FitDataRecord.BASETYPE_BYTE));
+        
+        assertEquals(true , FitDataRecord.isInvalidValue(0xFFFFFFFF, FitDataRecord.BASETYPE_UINT32));
+        assertEquals(true , FitDataRecord.isInvalidValue(0x7FFFFFFF, FitDataRecord.BASETYPE_SINT32));
+        assertEquals(true , FitDataRecord.isInvalidValue(0x00000000, FitDataRecord.BASETYPE_UINT32Z));
+        assertEquals(false, FitDataRecord.isInvalidValue(0x00000000, FitDataRecord.BASETYPE_UINT32));
+        assertEquals(false, FitDataRecord.isInvalidValue(0x00000000, FitDataRecord.BASETYPE_SINT32));
+        assertEquals(false, FitDataRecord.isInvalidValue(0x00000001, FitDataRecord.BASETYPE_UINT32Z));
+    }
     
 }

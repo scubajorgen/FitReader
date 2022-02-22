@@ -602,34 +602,34 @@ public class FitMessage
             {
                 switch (baseType)
                 {
-                    case 0x00: // enum
+                    case FitDataRecord.BASETYPE_ENUM:
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
-                    case 0x01: // sint8 - 2s complement
+                    case FitDataRecord.BASETYPE_SINT8:
                         value=records.get(index).bytesToSignedInt(arrayPosition, 1);
                         break;
-                    case 0x02: // uint8 
+                    case FitDataRecord.BASETYPE_UINT8:
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
-                    case 0x83: // sint16 - 2s complement 
+                    case FitDataRecord.BASETYPE_SINT16: 
                         value=records.get(index).bytesToSignedInt(arrayPosition, 2);
                         break;
-                    case 0x84: // uint16 
+                    case FitDataRecord.BASETYPE_UINT16:
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 2);
                         break;
-                    case 0x85: // sint32 - 2s complement 
+                    case FitDataRecord.BASETYPE_SINT32:
                         value=records.get(index).bytesToSignedInt(arrayPosition, 4);
                         break;
-                    case 0x86: // uint32 
+                    case FitDataRecord.BASETYPE_UINT32: 
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
-                    case 0x0A: // uint8z 
+                    case FitDataRecord.BASETYPE_UINT8Z: 
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 1);
                         break;
-                    case 0x8B: // uint16z 
+                    case FitDataRecord.BASETYPE_UINT16Z:
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 2);
                         break;
-                    case 0x8C: // uint32z 
+                    case FitDataRecord.BASETYPE_UINT32Z:
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
                     default:
@@ -709,13 +709,13 @@ public class FitMessage
             {
                 switch (baseType)
                 {
-                    case 0x8E: // sint64 - 2s complement 
+                    case FitDataRecord.BASETYPE_SINT64:
                         value=records.get(index).bytesToSignedInt(arrayPosition, 8);
                         break;
-                    case 0x8F: // uint64 
+                    case FitDataRecord.BASETYPE_UINT64: 
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
-                    case 0x90: // uint64z 
+                    case FitDataRecord.BASETYPE_UINT64Z: 
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
                     default:

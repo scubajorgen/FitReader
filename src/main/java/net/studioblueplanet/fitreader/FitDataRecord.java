@@ -6,12 +6,31 @@
 package net.studioblueplanet.fitreader;
 
 import net.studioblueplanet.fitreader.FitMessage.Endianness;
+import net.studioblueplanet.logger.DebugLogger;
 /**
  *
  * @author jorgen
  */
 public class FitDataRecord
 {
+    public static final int         BASETYPE_ENUM   =0x00;
+    public static final int         BASETYPE_SINT8  =0x01;
+    public static final int         BASETYPE_UINT8  =0x02;
+    public static final int         BASETYPE_SINT16 =0x83;
+    public static final int         BASETYPE_UINT16 =0x84;
+    public static final int         BASETYPE_SINT32 =0x85;
+    public static final int         BASETYPE_UINT32 =0x86;
+    public static final int         BASETYPE_STRING =0x07;
+    public static final int         BASETYPE_FLOAT32=0x88;
+    public static final int         BASETYPE_FLOAT64=0x89;
+    public static final int         BASETYPE_UINT8Z =0x0A;
+    public static final int         BASETYPE_UINT16Z=0x8B;
+    public static final int         BASETYPE_UINT32Z=0x8C;
+    public static final int         BASETYPE_BYTE   =0x8D;
+    public static final int         BASETYPE_SINT64 =0x8E;
+    public static final int         BASETYPE_UINT64 =0x8F;
+    public static final int         BASETYPE_UINT64Z=0x90;
+    
     private final int[]             recordData;
     private final Endianness        endianness;
 
@@ -157,5 +176,78 @@ public class FitDataRecord
             i++;
         }
         return string;
+    }
+    
+    /**
+     * Checks if the value represents the invalid value.
+     * @param value Value as long
+     * @param baseType Base type of the value
+     * @return True if invalid, false if not
+     */
+    public static boolean isInvalidValue(long value, int baseType)
+    {
+        boolean isInvalid;
+        long invalidValue;
+        
+        switch (baseType)
+        {
+            case BASETYPE_ENUM: 
+                invalidValue=0xFF;
+                break;
+            case BASETYPE_SINT8: 
+                invalidValue=0x7F;
+                break;
+            case BASETYPE_UINT8: 
+                invalidValue=0xFF;
+                break;
+            case BASETYPE_SINT16: 
+                invalidValue=0x7FFF;
+                break;
+            case BASETYPE_UINT16: 
+                invalidValue=0xFFFF;
+                break;
+            case BASETYPE_SINT32: 
+                invalidValue=0x7FFFFFFF;
+                break;
+            case BASETYPE_UINT32: 
+                invalidValue=0xFFFFFFFF;
+                break;
+            case BASETYPE_STRING: 
+                invalidValue=0x00;
+                break;
+            case BASETYPE_FLOAT32: 
+                invalidValue=0xFFFFFFFF;
+                break;
+            case BASETYPE_FLOAT64: 
+                invalidValue=0xFFFFFFFFFFFFFFFFL;
+                break;
+            case BASETYPE_UINT8Z: 
+                invalidValue=0x00;
+                break;
+            case BASETYPE_UINT16Z: 
+                invalidValue=0x0000;
+                break;
+            case BASETYPE_UINT32Z: 
+                invalidValue=0x00000000;
+                break;
+            case BASETYPE_BYTE: 
+                invalidValue=0xFF;
+                break;
+            case BASETYPE_SINT64: 
+                invalidValue=0x7FFFFFFFFFFFFFFFL;
+                break;
+            case BASETYPE_UINT64: 
+                invalidValue=0xFFFFFFFFFFFFFFFFL;
+                break;
+            case BASETYPE_UINT64Z: 
+                invalidValue=0x0000000000000000;
+                break;
+            default:
+                invalidValue=0x00;
+                DebugLogger.error("Invalid base type");
+                break;
+                
+        }
+        return (value==invalidValue);
     }
 }
