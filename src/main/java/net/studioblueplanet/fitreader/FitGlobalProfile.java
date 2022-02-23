@@ -6,7 +6,6 @@
 
 package net.studioblueplanet.fitreader;
 
-import net.studioblueplanet.logger.DebugLogger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,6 +14,8 @@ import java.util.HashMap;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -44,8 +45,7 @@ public class FitGlobalProfile
     }
     
            
-    
-    
+    private final static Logger                     LOGGER = LogManager.getLogger(FitGlobalProfile.class);
     private static final String                     GLOBALPROFILE="/Profile.xlsx";
     /** The one and only instance */
     private static FitGlobalProfile                 theInstance=null;
@@ -53,7 +53,7 @@ public class FitGlobalProfile
     private ArrayList<FitFieldDefinition>           globalProfileFields;
     private Map<String,ProfileType>                 globalProfileTypes;
     
-    private FitFieldDefinition                      fieldUnknown;
+    private final FitFieldDefinition                fieldUnknown;
     
     
     /**
@@ -122,17 +122,17 @@ public class FitGlobalProfile
                     }
                     else
                     {
-                        DebugLogger.error("Unexpected value in "+GLOBALPROFILE);
+                        LOGGER.error("Unexpected value in {}", GLOBALPROFILE);
                     }
 
                 }
                 else
                 {
-                    DebugLogger.error("Unexpected value in "+GLOBALPROFILE);
+                    LOGGER.error("Unexpected value in {}", GLOBALPROFILE);
                 }
             }
         }
-        DebugLogger.info("Read "+globalProfileTypes.size()+" global profile types");
+        LOGGER.info("Read {} global profile types", globalProfileTypes.size());
     }
 
     /**
@@ -150,7 +150,7 @@ public class FitGlobalProfile
         int                         lineNumber;
         int                         maxRows;
         
-        globalProfileFields=new ArrayList<FitFieldDefinition>();
+        globalProfileFields=new ArrayList<>();
 
         lineNumber      =0;
         messageName     ="";
@@ -173,7 +173,7 @@ public class FitGlobalProfile
                         messageNumber=getGlobalMessageNumber(messageName);
                         if (messageNumber==65535)
                         {
-                            DebugLogger.error("Message number not found for description "+messageName+" @ line: "+lineNumber);
+                            LOGGER.error("Message number not found for description {} @ line: {}", messageName, lineNumber);
                         }
                     }
                 }
@@ -223,7 +223,7 @@ public class FitGlobalProfile
                 }
             }
         }
-        DebugLogger.info("Read "+globalProfileFields.size()+" global profile field definitions");
+        LOGGER.info("Read "+globalProfileFields.size()+" global profile field definitions");
     }
     
     /**
@@ -245,7 +245,7 @@ public class FitGlobalProfile
             }
             else
             {
-                DebugLogger.error("Cannot find global profile file "+GLOBALPROFILE);
+                LOGGER.error("Cannot find global profile file "+GLOBALPROFILE);
             }
         }
         catch (FileNotFoundException e)
@@ -455,21 +455,6 @@ public class FitGlobalProfile
         return name;        
     }
     
-    
-    /**
-     * Convert signed integer to latitude or longitude.
-     * @param value The signed integer value
-     * @return Lat or lon value
-     *//*
-    public static double sintToLatLon(int value)
-    {
-        double latlon;
-        
-        latlon=180.0/(double)value;
-        
-        return latlon;
-    }*/
-
     /**
      * Debugging: dump the global types
      */
@@ -486,7 +471,7 @@ public class FitGlobalProfile
             while (itValue.hasNext())
             {
                 value=itValue.next();
-                DebugLogger.info(type.getType()+" "+value.getValueName()+"("+value.getValue()+")");
+                LOGGER.info("{} {}({})", type.getType(), value.getValueName(), value.getValue());
             }
         }
     }
@@ -503,7 +488,7 @@ public class FitGlobalProfile
         while (itType.hasNext())
         {
             field=      itType.next();
-            DebugLogger.info(field.toString());
+            LOGGER.info(field.toString());
         }
     }
     

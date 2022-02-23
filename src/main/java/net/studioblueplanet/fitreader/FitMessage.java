@@ -5,8 +5,8 @@
  */
 
 package net.studioblueplanet.fitreader;
-
-import net.studioblueplanet.logger.DebugLogger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -24,7 +24,8 @@ import hirondelle.date4j.DateTime;
  * @author Jorgen
  */
 public class FitMessage
-{
+{ 
+    private final static Logger     LOGGER = LogManager.getLogger(FitMessage.class);
     public enum HeaderType              {NORMAL, COMPRESSED_TIMESTAMP};
     public enum RecordType              {DEFINITION, DATA};
     public enum Endianness              {LITTLEENDIAN, BIGENDIAN};
@@ -196,7 +197,7 @@ public class FitMessage
         }
         else
         {
-            DebugLogger.error("Field not found!");
+            LOGGER.error("Field with ID {} not found for message {}!", fieldNumber, globalMessageNumber);
         }
         
         // This message has a timestamp field
@@ -255,7 +256,7 @@ public class FitMessage
         }  
         else
         {
-            DebugLogger.error("No field description available for the developer field");
+            LOGGER.error("No field description available for the developer field {}", fieldNumber);
         }
         developerFieldDefinitions.add(field);
         recordLength            +=size;
@@ -280,7 +281,7 @@ public class FitMessage
         }
         else
         {
-            DebugLogger.error("Field not found");
+            LOGGER.error("Field with index {} not found", fieldIndex);
             fieldSize=0;
         }
         return fieldSize;
@@ -317,7 +318,7 @@ public class FitMessage
         }
         else
         {
-            DebugLogger.error("Record size not ok: expected "+recordLength+" bytes, received "+bytes.length+" bytes");
+            LOGGER.error("Record size not ok: expected {} bytes, received {} bytes", recordLength, bytes.length);
         }
     }
     
@@ -633,20 +634,19 @@ public class FitMessage
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
                     default:
-                        DebugLogger.info("Retrieving record value: value is not a integer");
+                        LOGGER.info("Retrieving record value: value is not a integer");
                         break;
                 }
             }
             else
             {
-                DebugLogger.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record value: index out of bounds");
             }
         }
         else
         {
-            DebugLogger.debug("Retrieving record value: Field with name "+fieldName+" not found.");
+            LOGGER.debug("Retrieving record value: Field with name {} not found.", fieldName);
         }
-        
         
         return value;
     }
@@ -719,18 +719,18 @@ public class FitMessage
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
                     default:
-                        DebugLogger.info("Retrieving record value: value is not a long");
+                        LOGGER.info("Retrieving record value: value is not a long");
                         break;
                 }
             }
             else
             {
-                DebugLogger.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record value: index out of bounds");
             }
         }
         else
         {
-            DebugLogger.info("Retrieving record value: Field with name "+fieldName+" not found.");
+            LOGGER.info("Retrieving record value: Field with name {} not found.", fieldName);
         }
         return value;
     }
@@ -1013,17 +1013,17 @@ public class FitMessage
                 }
                 else
                 {
-                    DebugLogger.error("Retrieving string value: field does not represent a string");
+                    LOGGER.error("Retrieving string value: field does not represent a string");
                 }
             }
             else
             {
-                DebugLogger.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record value: index out of bounds");
             }
         }
         else
         {
-            DebugLogger.info("Retrieving record value: Field with name "+fieldName+" not found.");
+            LOGGER.info("Retrieving record value: Field with name {} not found.",fieldName);
         }
         
         
@@ -1044,18 +1044,18 @@ public class FitMessage
         
         profile=FitGlobalProfile.getInstance();
         
-        DebugLogger.debug("Local Message Type      :"+this.localMessageType);
-        DebugLogger.debug("Global Message Number   :"+this.globalMessageNumber);
-        DebugLogger.debug("Header Type             :"+this.headerType.toString());
-        DebugLogger.debug("Endianness              :"+this.endianness.toString());
-        DebugLogger.debug("Number of fields        :"+this.fieldDefinitions.size());
-        DebugLogger.debug("Number of dev. fields   :"+this.developerFieldDefinitions.size());
+        LOGGER.debug("Local Message Type      :"+this.localMessageType);
+        LOGGER.debug("Global Message Number   :"+this.globalMessageNumber);
+        LOGGER.debug("Header Type             :"+this.headerType.toString());
+        LOGGER.debug("Endianness              :"+this.endianness.toString());
+        LOGGER.debug("Number of fields        :"+this.fieldDefinitions.size());
+        LOGGER.debug("Number of dev. fields   :"+this.developerFieldDefinitions.size());
         
         iterator=fieldDefinitions.iterator();
         while (iterator.hasNext())
         {
             field=iterator.next();
-            DebugLogger.debug("Field                   : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
+            LOGGER.debug("Field                   : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
         }
         
     }

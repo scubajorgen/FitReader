@@ -6,11 +6,12 @@
 
 package net.studioblueplanet.fitreader;
 
-import net.studioblueplanet.logger.DebugLogger;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * This class is the entry point for this library. It is the reader that 
@@ -18,7 +19,8 @@ import java.io.FileNotFoundException;
  * @author Jorgen
  */
 public class FitReader
-{
+{   
+    private static final Logger LOGGER = LogManager.getLogger(FitReader.class);
     private static FitReader    theInstance=null;
 
     private FitMessageRepository repository;
@@ -36,7 +38,6 @@ public class FitReader
      */
     private FitReader()
     {
-        
     }
     
     /**
@@ -227,8 +228,8 @@ public class FitReader
         recordHeader            =in.read();
         bytesRead++;
         
-        DebugLogger.debug("********************* Record **************************");
-        DebugLogger.debug("Header "+String.format("0x%02x", recordHeader));
+        LOGGER.debug("********************* Record **************************");
+        LOGGER.debug("Header {}", String.format("0x%02x", recordHeader));
         
         // Bit 7 defines whether the header is normal or compressed timestamp
         // This bit defines the encoding of the rest of the byte
@@ -238,7 +239,7 @@ public class FitReader
             localMessageType=(recordHeader&0x60)>>5;
             timeOffset      =recordHeader&0x1F;
 
-            DebugLogger.debug("Compressed timestamp message!!");
+            LOGGER.debug("Compressed timestamp message!!");
             // Compressed timestamp Data Message
 
             // Find the record to add the data to
@@ -250,7 +251,7 @@ public class FitReader
             }
             else
             {
-                DebugLogger.error("Error: record to add the data to appears to have no definition message");
+                LOGGER.error("Error: record to add the data to appears to have no definition message");
             }
         }
         else
@@ -282,7 +283,7 @@ public class FitReader
                 record=repository.getFitMessage(localMessageType);
                 if (record!=null)
                 {
-                    DebugLogger.debug("Record with local message number "+localMessageType+" already exists. Creating new definition!");
+                    LOGGER.debug("Record with local message number {} already exists. Creating new definition!", localMessageType);
                 }
                 
                 // Create a new record
@@ -301,12 +302,12 @@ public class FitReader
                 if (hasDeveloperData)
                 {
                     // Consistency check
-                    DebugLogger.info("Illegal bit 5 value in header of Data Message");
+                    LOGGER.info("Illegal bit 5 value in header of Data Message");
                 }
                 if (reservedBit)
                 {
                     // Consistency check
-                    DebugLogger.info("Reserved bit in data message should be zero");
+                    LOGGER.info("Reserved bit in data message should be zero");
                 }
 
                 // Find the record to add the data to
@@ -318,7 +319,7 @@ public class FitReader
                 }
                 else
                 {
-                    DebugLogger.error("Error: record to add the data to appears to have no definition message");
+                    LOGGER.error("Error: record to add the data to appears to have no definition message");
                 }
             }
             
@@ -364,12 +365,12 @@ public class FitReader
             while (bytesExpected-bytesRead>0)
             {
                 bytesRead+=readRecord(in, repository);
-                DebugLogger.debug("Bytes Remaining: "+(bytesExpected-bytesRead));
+                LOGGER.debug("Bytes Remaining: {}", (bytesExpected-bytesRead));
             }
             
             if (bytesExpected-bytesRead!=0)
             {
-                DebugLogger.error("Error reading records: unexpected end of file");
+                LOGGER.error("Error reading records: unexpected end of file");
             }
 
             // Read the CRC
@@ -379,7 +380,7 @@ public class FitReader
         } 
         catch (IOException e)
         {
-            DebugLogger.error(e.getMessage());
+            LOGGER.error("Error reading input stream: {}", e.getMessage());
         }
         finally 
         {
@@ -391,7 +392,7 @@ public class FitReader
                 }
                 catch (IOException e)
                 {
-                    DebugLogger.error(e.getMessage());
+                    LOGGER.error("Error closing input stream: {}", e.getMessage());
                 }
             }
         }
@@ -421,7 +422,7 @@ public class FitReader
         }
         catch (FileNotFoundException e)
         {
-            DebugLogger.error("File not found: "+e.getMessage());
+            LOGGER.error("File not found: {}", e.getMessage());
         }
         return repo;
     }

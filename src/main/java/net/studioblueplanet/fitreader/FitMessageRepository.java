@@ -6,10 +6,11 @@
 
 package net.studioblueplanet.fitreader;
 
-import net.studioblueplanet.logger.DebugLogger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class represents the repository of messages enclosed in the FIT file.
@@ -19,6 +20,7 @@ import java.util.List;
  */
 public class FitMessageRepository
 {
+    private final static Logger     LOGGER = LogManager.getLogger(FitMessageRepository.class);
     private final List<FitMessage> messages;
     
     /**
@@ -91,7 +93,7 @@ public class FitMessageRepository
         if (!found)
         {
             message=null;
-            DebugLogger.debug("Message with local message type "+localMessageType+" not found.");
+            LOGGER.debug("Message with local message type {} not found.", localMessageType);
         }
         
         return message;
@@ -136,7 +138,7 @@ public class FitMessageRepository
         if (!found)
         {
             message=null;
-            DebugLogger.debug("Message with name "+messageName+" not found.");
+            LOGGER.debug("Message with name {} not found.", messageName);
         }
         
         return message;
@@ -188,13 +190,13 @@ public class FitMessageRepository
         
         for (FitMessage record : messages)
         {
-            DebugLogger.info("MESSAGE: "+FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber())+": "+
-                             record.getNumberOfRecords()+" records");
+            LOGGER.info("MESSAGE: {}: {} records", 
+                    FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber()),
+                    record.getNumberOfRecords());
             fields=record.getFieldDefintions();
-            
             for (FitMessageField field : fields)
             {
-                DebugLogger.info(field.definition.toString());
+                LOGGER.info(field.definition.toString());
             }
         }
     }

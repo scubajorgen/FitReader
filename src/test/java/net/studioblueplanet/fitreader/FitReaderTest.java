@@ -16,8 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
-import net.studioblueplanet.logger.DebugLogger;
-
 /**
  *
  * @author Jorgen
@@ -167,7 +165,6 @@ public class FitReaderTest
         int                     i;
 
         System.out.println("readFile");
-        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=this.readFitFile("src/test/resources/Activity.fit");
         
@@ -218,9 +215,10 @@ public class FitReaderTest
         int                     i;
 
         System.out.println("readFile");
-        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
+        
+        repository.dumpMessageDefintions();
         
         message=repository.getFitMessage("record");
         size=message.getNumberOfRecords();   
@@ -228,11 +226,6 @@ public class FitReaderTest
         assertEquals(2023, size);
         assertEquals(12, message.getNumberOfFields());
         assertEquals( 0, message.getNumberOfDeveloperFields());
-        List<String> fields=message.getMessageFieldNames();
-        for(String field: fields)
-        {
-            DebugLogger.info(field);
-        }
         assertEquals(53.01270539, message.getLatLonValue(0, "position_lat") , 0.00001);
         assertEquals( 6.72536795, message.getLatLonValue(0, "position_long"), 0.00001);
     }
@@ -246,7 +239,6 @@ public class FitReaderTest
         int                     i;
 
         System.out.println("compressedTimeStampFile");
-        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
 
         repository=compressedTimeStampFile();
         
@@ -279,8 +271,7 @@ public class FitReaderTest
         List<String>            messages;
         
         System.out.println("FitMessageRepository");
-        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_INFO);
-        
+       
         repository=this.readFitFile("src/test/resources/Activity.fit");
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
@@ -311,7 +302,6 @@ public class FitReaderTest
         List<String>            messages;
         
         System.out.println("FitMessageRepository");
-        DebugLogger.setDebugLevel(DebugLogger.DEBUGLEVEL_DEBUG);
         
         repository=this.readFitFile("src/test/resources/LocationsEdge810.fit");
         

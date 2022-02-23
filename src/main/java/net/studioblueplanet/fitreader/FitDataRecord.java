@@ -6,13 +6,15 @@
 package net.studioblueplanet.fitreader;
 
 import net.studioblueplanet.fitreader.FitMessage.Endianness;
-import net.studioblueplanet.logger.DebugLogger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 /**
  *
  * @author jorgen
  */
 public class FitDataRecord
 {
+    private final static Logger     LOGGER = LogManager.getLogger(FitDataRecord.class);
     public static final int         BASETYPE_ENUM   =0x00;
     public static final int         BASETYPE_SINT8  =0x01;
     public static final int         BASETYPE_UINT8  =0x02;
@@ -244,7 +246,7 @@ public class FitDataRecord
                 break;
             default:
                 invalidValue=0x00;
-                DebugLogger.error("Invalid base type");
+                LOGGER.error("Invalid base type {}", baseType);
                 break;
                 
         }

@@ -7,7 +7,8 @@ package net.studioblueplanet.fitreader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.studioblueplanet.logger.DebugLogger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Represents the FIT file header. Contains the fields in the header
@@ -15,6 +16,7 @@ import net.studioblueplanet.logger.DebugLogger;
  */
 public class FitHeader
 {
+    private final static Logger     LOGGER = LogManager.getLogger(FitHeader.class);
     private int         headerSize;
     private int         protocolVersion;
     private int         profileVersion;
@@ -112,12 +114,12 @@ public class FitHeader
         
         
         
-        DebugLogger.info("Header size      : "+header.headerSize);
-        DebugLogger.info("Protocol Version : "+header.protocolVersion);
-        DebugLogger.info("Profile Version  : "+header.profileVersion);
-        DebugLogger.info("Data size        : "+header.dataSize);
-        DebugLogger.info("Data type        : "+header.dataType);
-        DebugLogger.info("CRC              : "+header.crc);
+        LOGGER.info("Header size      : "+header.headerSize);
+        LOGGER.info("Protocol Version : "+header.protocolVersion);
+        LOGGER.info("Profile Version  : "+header.profileVersion);
+        LOGGER.info("Data size        : "+header.dataSize);
+        LOGGER.info("Data type        : "+header.dataType);
+        LOGGER.info("CRC              : "+header.crc);
         
         return header; 
     }    

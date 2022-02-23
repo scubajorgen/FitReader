@@ -25,8 +25,8 @@ public class FitFieldDefinition
     public String   toString()
     {
         return messageName+"("+messageNumber+") , " + 
-               fieldName+"("+fieldNumber+"), "+fieldType+", "+
-               units+", "+scale+", "+offset;        
+               fieldName+"("+fieldNumber+"), type: "+fieldType+", units: "+
+               units+", scale: "+scale+", offset: "+offset;        
     }
     
 }
