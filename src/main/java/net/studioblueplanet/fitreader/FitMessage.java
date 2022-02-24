@@ -1038,26 +1038,25 @@ public class FitMessage
      */
     public void dumpMessage()
     {
-        Iterator<FitMessageField>   iterator;
-        FitMessageField             field;
         FitGlobalProfile            profile;
         
         profile=FitGlobalProfile.getInstance();
         
-        LOGGER.debug("Local Message Type      :"+this.localMessageType);
-        LOGGER.debug("Global Message Number   :"+this.globalMessageNumber);
-        LOGGER.debug("Header Type             :"+this.headerType.toString());
-        LOGGER.debug("Endianness              :"+this.endianness.toString());
-        LOGGER.debug("Number of fields        :"+this.fieldDefinitions.size());
-        LOGGER.debug("Number of dev. fields   :"+this.developerFieldDefinitions.size());
+        LOGGER.debug("Local Msg Type:"+this.localMessageType);
+        LOGGER.debug("Global Msg Num:"+this.globalMessageNumber);
+        LOGGER.debug("Header Type   :"+this.headerType.toString());
+        LOGGER.debug("Endianness    :"+this.endianness.toString());
+        LOGGER.debug("Fields        :"+this.fieldDefinitions.size());
+        LOGGER.debug("Dev. fields   :"+this.developerFieldDefinitions.size());
         
-        iterator=fieldDefinitions.iterator();
-        while (iterator.hasNext())
+        for(FitMessageField field: fieldDefinitions)
         {
-            field=iterator.next();
-            LOGGER.debug("Field                   : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
+            LOGGER.debug("Field         : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
         }
-        
+        for(FitDeveloperField field: developerFieldDefinitions)
+        {
+            LOGGER.debug("Dev. Field    : {}, {}, type {}, units {}", field.fieldNumber, field.fieldName, field.baseType, field.units);
+        }
     }
     
     /**

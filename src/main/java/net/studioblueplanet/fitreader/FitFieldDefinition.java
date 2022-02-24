@@ -24,9 +24,11 @@ public class FitFieldDefinition
     @Override
     public String   toString()
     {
-        return messageName+"("+messageNumber+") , " + 
-               fieldName+"("+fieldNumber+"), type: "+fieldType+", units: "+
-               units+", scale: "+scale+", offset: "+offset;        
+        String data;
+        
+        data=String.format("%30s (%05d) %20s (%03d) type: %15s, units: %12s, scale %f, offset %f", 
+                           messageName, messageNumber, fieldName, fieldNumber, fieldType, units, scale, offset);
+        return data;
     }
     
 }
