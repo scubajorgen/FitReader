@@ -359,6 +359,7 @@ public class FitReader
                 // Read the CRC
                 crc=FitToolbox.readInt(reader, in, 2, true);
 
+                // CRC check
                 if (!reader.isValid())
                 {
                     LOGGER.error("File has invalid CRC!");

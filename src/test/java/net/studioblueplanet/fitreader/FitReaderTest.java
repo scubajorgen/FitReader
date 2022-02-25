@@ -22,6 +22,7 @@ import java.util.List;
  */
 public class FitReaderTest
 {
+    private FitReader instance; 
     
     public FitReaderTest()
     {
@@ -40,6 +41,7 @@ public class FitReaderTest
     @Before
     public void setUp()
     {
+        instance=FitReader.getInstance();
     }
     
     @After
@@ -77,7 +79,7 @@ public class FitReaderTest
         reader=FitReader.getInstance();
         
         // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D06180100002E4649540000"+                          // header
+        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D06180100002E4649540000"+                          // header (no CRC, CRC=0)
                 
                                                                    "40000000000603048C040486010284020284050284000100"+      // definition message 0x00 - file_id
                                                                    "0082224BEAFFFFFFFF01001F06FFFF08"+                      // data message 0x01
@@ -116,7 +118,7 @@ public class FitReaderTest
         reader=FitReader.getInstance();
         
         // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D064C0000002E4649540000"+                          // header
+        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D064C0000002E4649540000"+                          // header (no CRC: CRC=0)
                 
                                                                    "400000140003FD0486000485010485"+                        // 15 definition message 0x00 - record - timestamp position_lat position_long
                                                                    "4100001D0002010485020485"+                              // 12 definition message 0x01 - waypoints - position_lat position_long
@@ -134,26 +136,6 @@ public class FitReaderTest
         return repository;
     }
     
-    /**
-     * Reads a test FIT file.
-     * @return 
-     */
-    private FitMessageRepository readFitFile(String fileName, boolean ignoreCrc)
-    {
-        FitMessageRepository    repository;     
-        FitReader               reader;
-        InputStream             in;
-        byte[]                  inputBytes;        
-      
-        repository=null;
-        reader=FitReader.getInstance();
-
-        repository=reader.readFile(fileName, ignoreCrc);
-
-        return repository;
-    }
-    
-   
     @Test
     public void testReadFile()
     {
@@ -164,7 +146,7 @@ public class FitReaderTest
 
         System.out.println("readFile");
 
-        repository=this.readFitFile("src/test/resources/Activity.fit", false);
+        repository=instance.readFile("src/test/resources/Activity.fit", false);
         
         message=repository.getFitMessage("record");
         size=message.getNumberOfRecords();
@@ -190,7 +172,7 @@ public class FitReaderTest
         assertEquals(1457061125, message.getIntValue(0, "serial_number", false));
 
         
-        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit", false);
+        repository=instance.readFile("src/test/resources/ActivityEdge830.fit", false);
         
         message=repository.getFitMessage("record");
         size=message.getNumberOfRecords();
@@ -202,8 +184,7 @@ public class FitReaderTest
         assertEquals(17.0, message.getAltitudeValue(100, "altitude"), 0.000001);
         
     }
-    
-    
+        
     @Test
     public void testReadFile2()
     {
@@ -214,7 +195,7 @@ public class FitReaderTest
 
         System.out.println("readFile");
 
-        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit", false);
+        repository=instance.readFile("src/test/resources/ActivityEdge830.fit", false);
         
         repository.dumpMessageDefintions();
         
@@ -247,8 +228,7 @@ public class FitReaderTest
         assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());
         assertEquals( 4.9991618469, message.getLatLonValue(0, "position_lat") , 0.0000001);
         assertEquals(-4.9991618469, message.getLatLonValue(0, "position_long"), 0.0000001);
-        
-        
+         
         // Compressed timestamps
         message=repository.getFitMessage("waypoints");
         size=message.getNumberOfRecords();   
@@ -257,10 +237,7 @@ public class FitReaderTest
         assertEquals("2011-09-04 10:42:47.000000000", message.getTimeValue(1, "timestamp").toString());
         assertEquals("2011-09-04 10:42:55.000000000", message.getTimeValue(2, "timestamp").toString());
         assertEquals("2011-09-04 10:43:14.000000000", message.getTimeValue(3, "timestamp").toString());
-         
-    }
-    
-    
+    }  
     
     @Test
     public void testMessageRepository()
@@ -270,7 +247,7 @@ public class FitReaderTest
         
         System.out.println("FitMessageRepository");
        
-        repository=this.readFitFile("src/test/resources/Activity.fit", false);
+        repository=instance.readFile("src/test/resources/Activity.fit", false);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         
@@ -301,8 +278,8 @@ public class FitReaderTest
         
         System.out.println("FitMessageRepository");
         
-        // CRC ERROR!!!!!!
-        repository=this.readFitFile("src/test/resources/LocationsEdge810.fit", true);
+        // CRC ERROR!!!!!! So ignore CRC check
+        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", true);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         
@@ -311,7 +288,7 @@ public class FitReaderTest
         // The 'waypoint' field (id=29) no longer exists...
         assertEquals("waypoints", messages.get(2));
         
-        repository=this.readFitFile("src/test/resources/LocationsEdge830.fit", false);
+        repository=instance.readFile("src/test/resources/LocationsEdge830.fit", false);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         
@@ -321,4 +298,22 @@ public class FitReaderTest
         assertEquals("waypoints", messages.get(2));
     }
 
+    @Test
+    public void testReadFileCrc()
+    {
+        FitMessageRepository    repository;
+        List<String>            messages;
+        
+        System.out.println("readFile");
+        
+        // Apperently a file with a CRC ERROR!!!!!!
+        FitReader instance=FitReader.getInstance();
+        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", false);
+        assertNull(repository);
+        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", true);
+        assertNotNull(repository);
+        
+        repository=instance.readFile("src/test/resources/LocationsEdge830.fit", false);
+        assertNotNull(repository);
+    }
 }
