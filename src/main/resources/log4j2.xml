@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" name="baeldung" packages="">
+<Configuration status="debug" name="production" packages="">
     <Appenders>
         <Console name="stdout" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %m%n"/>
@@ -7,7 +7,7 @@
     </Appenders>
     <Loggers>
     	<!-- Root logger referring to console appender -->
-        <Root level="debug" additivity="false">
+        <Root level="error" additivity="false">
             <AppenderRef ref="stdout" />
         </Root>
     </Loggers>
