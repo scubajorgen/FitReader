@@ -96,7 +96,7 @@ public class FitReaderTest
                                                                    "0000");                                                                 // crc
         in=new ByteArrayInputStream(inputBytes);
 
-        repository=reader.readInputStream(in);
+        repository=reader.readInputStream(in, false);
 
         return repository;
     }
@@ -126,12 +126,10 @@ public class FitReaderTest
                                                                    "A7D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
                                                                    "AFD4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
                                                                    "A2D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
-                                                                   
-                
-                                                                   "0000");                                                // crc
+                                                                   "8AE0");                                                // crc
         in=new ByteArrayInputStream(inputBytes);
 
-        repository=reader.readInputStream(in);
+        repository=reader.readInputStream(in, false);
 
         return repository;
     }
@@ -140,7 +138,7 @@ public class FitReaderTest
      * Reads a test FIT file.
      * @return 
      */
-    private FitMessageRepository readFitFile(String fileName)
+    private FitMessageRepository readFitFile(String fileName, boolean ignoreCrc)
     {
         FitMessageRepository    repository;     
         FitReader               reader;
@@ -150,7 +148,7 @@ public class FitReaderTest
         repository=null;
         reader=FitReader.getInstance();
 
-        repository=reader.readFile(fileName);
+        repository=reader.readFile(fileName, ignoreCrc);
 
         return repository;
     }
@@ -166,7 +164,7 @@ public class FitReaderTest
 
         System.out.println("readFile");
 
-        repository=this.readFitFile("src/test/resources/Activity.fit");
+        repository=this.readFitFile("src/test/resources/Activity.fit", false);
         
         message=repository.getFitMessage("record");
         size=message.getNumberOfRecords();
@@ -192,7 +190,7 @@ public class FitReaderTest
         assertEquals(1457061125, message.getIntValue(0, "serial_number", false));
 
         
-        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
+        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit", false);
         
         message=repository.getFitMessage("record");
         size=message.getNumberOfRecords();
@@ -216,7 +214,7 @@ public class FitReaderTest
 
         System.out.println("readFile");
 
-        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit");
+        repository=this.readFitFile("src/test/resources/ActivityEdge830.fit", false);
         
         repository.dumpMessageDefintions();
         
@@ -272,7 +270,7 @@ public class FitReaderTest
         
         System.out.println("FitMessageRepository");
        
-        repository=this.readFitFile("src/test/resources/Activity.fit");
+        repository=this.readFitFile("src/test/resources/Activity.fit", false);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         
@@ -303,7 +301,8 @@ public class FitReaderTest
         
         System.out.println("FitMessageRepository");
         
-        repository=this.readFitFile("src/test/resources/LocationsEdge810.fit");
+        // CRC ERROR!!!!!!
+        repository=this.readFitFile("src/test/resources/LocationsEdge810.fit", true);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         
@@ -312,7 +311,7 @@ public class FitReaderTest
         // The 'waypoint' field (id=29) no longer exists...
         assertEquals("waypoints", messages.get(2));
         
-        repository=this.readFitFile("src/test/resources/LocationsEdge830.fit");
+        repository=this.readFitFile("src/test/resources/LocationsEdge830.fit", false);
         
         System.out.println("Fields: "+repository.getMessageNames().toString());
         

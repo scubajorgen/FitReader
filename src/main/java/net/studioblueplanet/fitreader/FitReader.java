@@ -20,18 +20,10 @@ import org.apache.logging.log4j.LogManager;
  */
 public class FitReader
 {   
-    private static final Logger LOGGER = LogManager.getLogger(FitReader.class);
-    private static FitReader    theInstance=null;
+    private static final Logger     LOGGER = LogManager.getLogger(FitReader.class);
+    private static FitReader        theInstance=null;
+    private FitMessageRepository    repository;
 
-    private FitMessageRepository repository;
-
-    
-    int[] crc_table =
-    {
-        0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
-        0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400
-    };
-    
     /**
      * Constructor. It is private, since the pattern used is Singleton.
      * Use getInstance() to get the one and only instance.
@@ -41,32 +33,12 @@ public class FitReader
     }
     
     /**
-     * CRC calculation
-     * @param crc Current crc value
-     * @param theByte Byte to add?
-     * @return crc value
-     */
-    private int getCrc(int crc, int theByte)
-    {
-        int tmp;
-        // compute checksum of lower four bits of byte
-        tmp = crc_table[crc & 0xF];
-        crc = (crc >> 4) & 0x0FFF;
-        crc = crc ^ tmp ^ crc_table[theByte & 0xF];
-        // now compute checksum of upper four bits of byte
-        tmp = crc_table[crc & 0xF];
-        crc = (crc >> 4) & 0x0FFF;
-        crc = crc ^ tmp ^ crc_table[(theByte >> 4) & 0xF];
-        return crc;
-    }    
-    
-    /**
      * Parses the record data, provided the record is a FIT "data message"
      * @param in The input reader
      * @param record The record to add the data to
      * @throws IOException In case of misread
      */
-    private int parseDataMessage(InputStream in, FitMessage record) throws IOException
+    private int parseDataMessage(CrcReader reader, InputStream in, FitMessage record) throws IOException
     {
         int     i;
         int     bytesRead;
@@ -81,7 +53,7 @@ public class FitReader
         bytes=new int[recordSize];
         while (i<recordSize)
         {
-            bytes[i]=in.read();
+            bytes[i]=reader.read(in);
             bytesRead++;
             i++;
         }
@@ -96,13 +68,13 @@ public class FitReader
      * @param record The record to add the data to
      * @throws IOException In case of misread
      */
-    private int parseCompressedTimestampDataMessage(InputStream in, FitMessage record, int timeOffset) throws IOException
+    private int parseCompressedTimestampDataMessage(CrcReader reader, InputStream in, FitMessage record, int timeOffset) throws IOException
     {
         int bytesRead;
         
         // To do: store compressed timestamp offset with record
         
-        bytesRead=parseDataMessage(in, record);
+        bytesRead=parseDataMessage(reader, in, record);
         
         record.addTimeStampOffset(timeOffset);
         
@@ -115,7 +87,7 @@ public class FitReader
      * @param record The record to add the definition to
      * @throws IOException In case of misread
      */
-    private int parseDefinitionMessage(InputStream in, FitMessage record, boolean hasDeveloperData) throws IOException
+    private int parseDefinitionMessage(CrcReader reader, InputStream in, FitMessage record, boolean hasDeveloperData) throws IOException
     {
         int bytesRead;
         int architecture;
@@ -134,11 +106,11 @@ public class FitReader
         bytesRead=0;
         
         // Reserved
-        in.read();
+        reader.read(in);
         bytesRead++;
         
         // architecture
-        architecture=in.read();
+        architecture=reader.read(in);
         bytesRead++;
         if (architecture>0)
         {
@@ -150,22 +122,22 @@ public class FitReader
         }
         
         // Message Number
-        globalMessageNumber=FitToolbox.readInt(in, 2, record.isLittleEndian());
+        globalMessageNumber=FitToolbox.readInt(reader, in, 2, record.isLittleEndian());
         
         bytesRead+=2;
         record.setGlobalMessageNumber(globalMessageNumber);
         
         // Number of data fields
-        numberOfDataFields=in.read();
+        numberOfDataFields=reader.read(in);
         bytesRead++;
         
         // The data fields
         i=0;
         while (i<numberOfDataFields)
         {
-            fieldDefinitionNumber   =in.read();
-            size                    =in.read();
-            baseType                =in.read();
+            fieldDefinitionNumber   =reader.read(in);
+            size                    =reader.read(in);
+            baseType                =reader.read(in);
             bytesRead               +=3;
             record.addMessageField(globalMessageNumber, fieldDefinitionNumber, size, baseType);
             i++;
@@ -175,16 +147,16 @@ public class FitReader
         if (hasDeveloperData)
         {
             // Number of developer data fields
-            numberOfDataFields=in.read();
+            numberOfDataFields=reader.read(in);
             bytesRead++;
  
             // The developer fields
             i=0;
             while (i<numberOfDataFields)
             {
-                fieldDefinitionNumber   =in.read();
-                size                    =in.read();
-                developerDataIndex                =in.read();
+                fieldDefinitionNumber   =reader.read(in);
+                size                    =reader.read(in);
+                developerDataIndex      =reader.read(in);
                 record.addDeveloperField(globalMessageNumber, fieldDefinitionNumber, size, developerDataIndex, repository.getFitMessage("field_description"));
                 bytesRead               +=3;
                 i++;
@@ -204,17 +176,18 @@ public class FitReader
      * contains field values.
      * A definition message generates a new Record instance, a data message
      * is transferred to a record values and added to the Record
+     * @param reader CRC Reader to use for CRC verification
      * @param in Input stream
      * @param repository Repository to add the record to
      * @return The number of bytes read
      * @throws IOException In case of miss read
      */
-    private int readRecord(InputStream in, FitMessageRepository repository) throws IOException
+    private int readRecord(CrcReader reader, InputStream in, FitMessageRepository repository) throws IOException
     {
-        FitMessage                   record;
+        FitMessage                  record;
         int                         bytesRead;
         int                         recordHeader;
-        FitMessage.HeaderType        headerType;
+        FitMessage.HeaderType       headerType;
         int                         localMessageType;
         int                         timeOffset;
         boolean                     hasDeveloperData;
@@ -225,7 +198,7 @@ public class FitReader
         reservedBit             =false;
             
         // Read the first byte: the record header
-        recordHeader            =in.read();
+        recordHeader            =reader.read(in);
         bytesRead++;
         
         LOGGER.debug("********************* Record **************************");
@@ -247,7 +220,7 @@ public class FitReader
             // Check if the record has been found
             if (record!=null)
             {
-                bytesRead+=this.parseCompressedTimestampDataMessage(in, record, timeOffset);
+                bytesRead+=this.parseCompressedTimestampDataMessage(reader, in, record, timeOffset);
             }
             else
             {
@@ -289,7 +262,7 @@ public class FitReader
                 // Create a new record
                 record=new FitMessage(localMessageType, headerType, hasDeveloperData);
                 // Parse the data (field definitions)
-                bytesRead+=this.parseDefinitionMessage(in, record, hasDeveloperData);
+                bytesRead+=this.parseDefinitionMessage(reader, in, record, hasDeveloperData);
                 // Add the record to the repository
                 repository.addFitMessage(record);
                 // Dump the record information
@@ -315,7 +288,7 @@ public class FitReader
                 // Check if the record has been found
                 if (record!=null)
                 {
-                    bytesRead+=this.parseDataMessage(in, record);
+                    bytesRead+=this.parseDataMessage(reader, in, record);
                 }
                 else
                 {
@@ -344,38 +317,61 @@ public class FitReader
     }
 
 
-    public FitMessageRepository readInputStream(InputStream in)
+    /**
+     * This method reads a .FIT file from given input stream
+     * @param in The input stream
+     * @return A FitRepository containing all messages and data records read or
+     *         null if a CRC error occurred.
+     */
+    public FitMessageRepository readInputStream(InputStream in, boolean ignoreCrc)
     {
         FitHeader               fitHeader;
         FitReader               fitReader;
         int                     bytesExpected;
         int                     bytesRead;
         int                     crc;
+        CrcReader               reader;
      
         repository=new FitMessageRepository();
+        reader=new CrcReader();
 
         try 
         {
         
-            fitHeader=FitHeader.readHeader(in);
-            bytesExpected=fitHeader.getDataSize();
-
-            bytesRead=0;
-            
-            while (bytesExpected-bytesRead>0)
+            fitHeader       =FitHeader.readHeader(in, ignoreCrc);
+            if (fitHeader!=null)
             {
-                bytesRead+=readRecord(in, repository);
-                LOGGER.debug("Bytes Remaining: {}", (bytesExpected-bytesRead));
-            }
-            
-            if (bytesExpected-bytesRead!=0)
-            {
-                LOGGER.error("Error reading records: unexpected end of file");
-            }
+                bytesExpected   =fitHeader.getDataSize();
 
-            // Read the CRC
-            crc=FitToolbox.readInt(in, 2, true);
-            
+                bytesRead       =0;
+
+                while (bytesExpected-bytesRead>0)
+                {
+                    bytesRead+=readRecord(reader, in, repository);
+                    LOGGER.debug("Bytes Remaining: {}", (bytesExpected-bytesRead));
+                }
+
+                if (bytesExpected-bytesRead!=0)
+                {
+                    LOGGER.error("Error reading records: unexpected end of file");
+                }
+
+                // Read the CRC
+                crc=FitToolbox.readInt(reader, in, 2, true);
+
+                if (!reader.isValid())
+                {
+                    LOGGER.error("File has invalid CRC!");
+                    if (!ignoreCrc)
+                    {
+                        repository=null;
+                    }
+                }
+            }
+            else
+            {
+                repository=null;
+            }
             in.close();
         } 
         catch (IOException e)
@@ -406,9 +402,10 @@ public class FitReader
      * the FitRecordRepository. The repository contains all FitRecords read
      * and can be used for querying
      * @param fileName Name of the file to parse.
+     * @param ignoreCrc Indicates whether to skip the CRC check
      * @return The FitRecordRepository
      */
-    public FitMessageRepository readFile(String fileName)
+    public FitMessageRepository readFile(String fileName, boolean ignoreCrc)
     {
         FitMessageRepository repo;
         FileInputStream in;
@@ -418,7 +415,7 @@ public class FitReader
         try
         {
             in=new FileInputStream(fileName);
-            repo=this.readInputStream(in);
+            repo=this.readInputStream(in, ignoreCrc);
         }
         catch (FileNotFoundException e)
         {
@@ -426,4 +423,18 @@ public class FitReader
         }
         return repo;
     }
+    
+    /**
+     * Read and parse the .fit file. This method reads the file and returns
+     * the FitRecordRepository. The repository contains all FitRecords read
+     * and can be used for querying
+     * For backwards compatibility, doesn't execute CRC
+     * @param fileName Name of the file to parse.
+     * @return The FitRecordRepository
+     */
+    public FitMessageRepository readFile(String fileName)
+    {
+        return readFile(fileName, true);
+    }
+    
 }

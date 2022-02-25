@@ -66,11 +66,11 @@ public class FitToolboxTest
         inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("12345678abcdef");
         in=new ByteArrayInputStream(inputBytes);
         
-        
         bytes           =1;
         isLittleEndian  =false;
         expResult       =0x12;
-        result          = FitToolbox.readInt(in, bytes, isLittleEndian);
+        CrcReader reader=new CrcReader();
+        result          = FitToolbox.readInt(reader, in, bytes, isLittleEndian);
         assertEquals(expResult, result);
     }
 
@@ -88,23 +88,24 @@ public class FitToolboxTest
         
         System.out.println("readString");
   
-        inputString="This is a test";
+        inputString     ="This is a test";
         in=new ByteArrayInputStream(inputString.getBytes("UTF-8"));
         
         
+        CrcReader reader=new CrcReader();
         bytes           =4;
         expResult       ="This";
-        result          = FitToolbox.readString(in, bytes);
+        result          = FitToolbox.readString(reader, in, bytes);
         assertEquals(expResult, result);
 
         bytes           =3;
         expResult       =" is";
-        result          = FitToolbox.readString(in, bytes);
+        result          = FitToolbox.readString(reader, in, bytes);
         assertEquals(expResult, result);
 
         bytes           =7;
         expResult       =" a test";
-        result          = FitToolbox.readString(in, bytes);
+        result          = FitToolbox.readString(reader, in, bytes);
         assertEquals(expResult, result);
 
     }

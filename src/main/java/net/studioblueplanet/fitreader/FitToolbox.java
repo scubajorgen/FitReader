@@ -22,7 +22,7 @@ public class FitToolbox
      * @return The integer value
      * @throws IOException When miss read
      */
-    public static int readInt(InputStream in, int bytes, boolean isLittleEndian) throws IOException
+    public static int readInt(CrcReader reader, InputStream in, int bytes, boolean isLittleEndian) throws IOException
     {
         int c;
         int b;
@@ -33,7 +33,7 @@ public class FitToolbox
         c=0;
         while (i<bytes)
         {
-            b=in.read();
+            b=reader.read(in);
             if (isLittleEndian)
             {
                 b<<=(i*8);
@@ -56,7 +56,7 @@ public class FitToolbox
      * @return The string read
      * @throws IOException When an read error occurs
      */
-    public static String readString(InputStream in, int chars) throws IOException
+    public static String readString(CrcReader reader, InputStream in, int chars) throws IOException
     {
         int     i;
         String  string;
@@ -65,7 +65,7 @@ public class FitToolbox
         i=0;
         while (i<chars)
         {
-            string+=(char)in.read();
+            string+=(char)reader.read(in);
             i++;
         }
         return string;
