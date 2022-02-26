@@ -210,29 +210,7 @@ public class FitReaderTest
     }
     
     
-    @Test
-    public void testReadFile3()
-    {
-        FitMessageRepository    repository;
-
-        System.out.println("readFile");
-        
-        // This file contains 'record' data under global message number 7 and 14 
-        repository=instance.readFile("src/test/resources/2022-01-08-10-37-14.fit", false);
-
-        List<FitMessage> messages=repository.getAllFields("record");
-        assertEquals(2, messages.size());
-        FitMessage message=messages.get(0);
-        assertEquals(14, message.getLocalMessageType());
-        assertEquals("record", message.getMessageName());
-        assertEquals(2822, message.getNumberOfRecords());
-
-        message=messages.get(1);
-        assertEquals(7, message.getLocalMessageType());
-        assertEquals("record", message.getMessageName());
-        assertEquals(1, message.getNumberOfRecords());
-    }
-    
+  
     @Test
     public void testReadCompressedTimeStampFile()
     {
@@ -263,65 +241,6 @@ public class FitReaderTest
         assertEquals("2011-09-04 10:43:14.000000000", message.getTimeValue(3, "timestamp").toString());
     }  
     
-    @Test
-    public void testMessageRepository()
-    {
-        FitMessageRepository    repository;
-        List<String>            messages;
-        
-        System.out.println("FitMessageRepository");
-       
-        repository=instance.readFile("src/test/resources/Activity.fit", false);
-        
-        System.out.println("Fields: "+repository.getMessageNames().toString());
-        
-        messages=repository.getMessageNames();
-        
-        assertEquals("file_id", messages.get(0));
-        assertEquals("device_info", messages.get(1));
-        assertEquals("event", messages.get(2));
-        assertEquals("activity", messages.get(10));
-        
-        assertEquals(true, repository.messageExists(0));
-        assertEquals(false, repository.messageExists(1));
-        assertEquals(false, repository.messageExists(4));
-        
-        assertNotEquals(null, repository.getFitMessage("file_id"));
-        assertEquals(null, repository.getFitMessage("blah_blah"));
-        
-        assertNotNull(repository.getFitMessage(0));
-        assertNull(repository.getFitMessage(4));
-        assertNull(repository.getFitMessage(-1));
-    }
-
-    @Test
-    public void testLocationsRepository()
-    {
-        FitMessageRepository    repository;
-        List<String>            messages;
-        
-        System.out.println("FitMessageRepository");
-        
-        // CRC ERROR!!!!!! So ignore CRC check
-        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", true);
-        
-        System.out.println("Fields: "+repository.getMessageNames().toString());
-        
-        messages=repository.getMessageNames();
-        
-        // The 'waypoint' field (id=29) no longer exists...
-        assertEquals("waypoints", messages.get(2));
-        
-        repository=instance.readFile("src/test/resources/LocationsEdge830.fit", false);
-        
-        System.out.println("Fields: "+repository.getMessageNames().toString());
-        
-        messages=repository.getMessageNames();
-        
-        // The 'waypoint' field (id=29) no longer exists...
-        assertEquals("waypoints", messages.get(2));
-    }
-
     @Test
     public void testReadFileCrc()
     {
