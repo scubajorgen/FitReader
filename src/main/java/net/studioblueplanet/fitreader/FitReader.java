@@ -232,7 +232,7 @@ public class FitReader
             // The header type - bit 7
             headerType      =FitMessage.HeaderType.NORMAL;
             
-            // The local message type - bit 0-2 - (0-15)
+            // The local message type - bit 0-3 - (0-15)
             localMessageType=recordHeader&0x0F;
             timeOffset      =0;
             

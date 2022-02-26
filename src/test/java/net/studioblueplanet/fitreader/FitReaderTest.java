@@ -209,6 +209,30 @@ public class FitReaderTest
         assertEquals( 6.72536795, message.getLatLonValue(0, "position_long"), 0.00001);
     }
     
+    
+    @Test
+    public void testReadFile3()
+    {
+        FitMessageRepository    repository;
+
+        System.out.println("readFile");
+        
+        // This file contains 'record' data under global message number 7 and 14 
+        repository=instance.readFile("src/test/resources/2022-01-08-10-37-14.fit", false);
+
+        List<FitMessage> messages=repository.getAllFields("record");
+        assertEquals(2, messages.size());
+        FitMessage message=messages.get(0);
+        assertEquals(14, message.getLocalMessageType());
+        assertEquals("record", message.getMessageName());
+        assertEquals(2822, message.getNumberOfRecords());
+
+        message=messages.get(1);
+        assertEquals(7, message.getLocalMessageType());
+        assertEquals("record", message.getMessageName());
+        assertEquals(1, message.getNumberOfRecords());
+    }
+    
     @Test
     public void testReadCompressedTimeStampFile()
     {

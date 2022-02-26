@@ -37,6 +37,7 @@ public class FitMessage
     private Endianness                          endianness;
     private boolean                             hasDeveloperData;
     private int                                 globalMessageNumber;
+    private String                              globalMessageName;
     private final List<FitMessageField>         fieldDefinitions;
     private final List<FitDeveloperField>       developerFieldDefinitions;
     private final List<FitDataRecord>           records;
@@ -49,6 +50,8 @@ public class FitMessage
     private boolean                             hasTimeStamp;
     private static int                          mostRecentTimeStamp=0;
     private static int                          previousTimeStampOffset=0;
+    
+    private final FitGlobalProfile              globalProfile;             
     
     /***************************************************************************\
      * CONSTRUCTOR/DESTRUCTOR
@@ -70,10 +73,12 @@ public class FitMessage
         byteArrayPosition       =0;
         hasTimeStamp            =false;
         
-        fieldDefinitions      =new ArrayList<>();
+        fieldDefinitions            =new ArrayList<>();
         developerFieldDefinitions   =new ArrayList<>();
         records                     =new ArrayList<>();
         timeStamps                  =new HashMap<>();
+        
+        globalProfile               =FitGlobalProfile.getInstance();
     }
     
     /***************************************************************************\
@@ -154,6 +159,7 @@ public class FitMessage
     public void setGlobalMessageNumber(int globalMessageNumber)
     {
         this.globalMessageNumber=globalMessageNumber;
+        this.globalMessageName=globalProfile.getGlobalMessageName(globalMessageNumber);
     }
     
     /**
@@ -179,11 +185,9 @@ public class FitMessage
     public void addMessageField(int globalMessageNumber, int fieldNumber, int size, int baseType)
     {
         FitFieldDefinition  fieldDefinition;
-        FitGlobalProfile    profile;
         FitMessageField     field;
    
-        profile=FitGlobalProfile.getInstance();
-        fieldDefinition=profile.getMessageField(globalMessageNumber, fieldNumber);
+        fieldDefinition=globalProfile.getMessageField(globalMessageNumber, fieldNumber);
         if (fieldDefinition!=null)
         {
             field                   =new FitMessageField();
@@ -247,7 +251,7 @@ public class FitMessage
                     field.nativeMessageNumber   =fieldDescription.getIntValue(i, "native_mesg_num", false);
                     field.nativeFieldNumber     =fieldDescription.getIntValue(i, "native_field_num", false);
                     field.baseTypeId            =fieldDescription.getIntValue(i, "fit_base_type_id", false);
-                    field.baseType              =FitGlobalProfile.getInstance().getBaseTypeName(field.baseTypeId);
+                    field.baseType              =globalProfile.getBaseTypeName(field.baseTypeId);
 
                     found=true;
                 }
@@ -1038,10 +1042,6 @@ public class FitMessage
      */
     public void dumpMessage()
     {
-        FitGlobalProfile            profile;
-        
-        profile=FitGlobalProfile.getInstance();
-        
         LOGGER.debug("Local Msg Type:"+this.localMessageType);
         LOGGER.debug("Global Msg Num:"+this.globalMessageNumber);
         LOGGER.debug("Header Type   :"+this.headerType.toString());
@@ -1051,7 +1051,7 @@ public class FitMessage
         
         for(FitMessageField field: fieldDefinitions)
         {
-            LOGGER.debug("Field         : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+profile.getBaseTypeName(field.baseType)+")");
+            LOGGER.debug("Field         : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+globalProfile.getBaseTypeName(field.baseType)+")");
         }
         for(FitDeveloperField field: developerFieldDefinitions)
         {
@@ -1075,6 +1075,25 @@ public class FitMessage
     public List<FitDeveloperField> getDeveloperFieldDefintions()
     {
         return this.developerFieldDefinitions;
+    }
+    
+    /**
+     * Returns the data records of this message
+     * @return The data records as list
+     */
+    public List<FitDataRecord> getDataRecords()
+    {
+        return records;
+    }
+    
+    /**
+     * This method returns the name of the message according to the 
+     * global profile
+     * @return The name
+     */
+    public String getMessageName()
+    {
+        return globalMessageName;
     }
 
 }

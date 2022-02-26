@@ -71,9 +71,9 @@ public class FitMessageRepository
         int         numOfMessages;
         boolean     found;
         
-        numOfMessages    =this.messages.size();
+        numOfMessages   =this.messages.size();
         found           =false;
-        message          =null;
+        message         =null;
         
         // Start parsing the list from the end, moving to the start
         // We need to find the last message that has given local message type value.
@@ -101,6 +101,10 @@ public class FitMessageRepository
     
     /**
      * This method returns the last added message with given name.
+     * Important note: FIT files have been observed in which the same message 
+     * occurs with multiple local message type. E.g. the 'record' message 
+     * is available with local message type 7 as well as 14. This means
+     * data records are distributed over multiple FitMessages.
      * @param messageName Name of the record according to the global profile)
      * @return The record, or null if it does not exist
      */
@@ -142,6 +146,29 @@ public class FitMessageRepository
         }
         
         return message;
+    }
+    
+    /**
+     * This method returns the fields identified
+     * by given field name. It appears that the same message (name) occurs more than once
+     * in a file under different local message types.
+     * @param messageName The name of the message, e.g. 'record', as defined in the global profile
+     * @return A list with all the fields with that name
+     */
+    public List<FitMessage> getAllFields(String messageName)
+    {
+        List<FitMessage> allFields;
+        
+        allFields=new ArrayList<>();
+        
+        for (FitMessage message : messages)
+        {
+            if (message.getMessageName().equals(messageName))
+            {
+                allFields.add(message);
+            }
+        }
+        return allFields;
     }
     
     /**
@@ -190,9 +217,10 @@ public class FitMessageRepository
         
         for (FitMessage record : messages)
         {
-            LOGGER.info("MESSAGE: {}: {} records", 
+            LOGGER.info("MESSAGE {}: {} records, local message type {}", 
                     FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber()),
-                    record.getNumberOfRecords());
+                    record.getNumberOfRecords(),
+                    record.getLocalMessageType());
             fields=record.getFieldDefintions();
             for (FitMessageField field : fields)
             {

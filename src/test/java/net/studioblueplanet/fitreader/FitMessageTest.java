@@ -86,7 +86,6 @@ public class FitMessageTest
                       200,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
-        instance.addDataRecord(record4);
         int[] record5={0xD4, 0x11, 0x8E, 0x03,
                       0x2C, 0xEE, 0x71, 0xFC,
                       0xC9, 0x09,
@@ -105,6 +104,7 @@ public class FitMessageTest
                       200,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
+        instance.addDataRecord(record4);
         instance.addDataRecord(record5);        
         instance.addDataRecord(record6);          
     }
@@ -598,5 +598,31 @@ public class FitMessageTest
         assertEquals("test1", names.get(0));
         assertEquals("test3", names.get(1));
     }
+ 
     
+    @Test
+    public void testGetMessageName()
+    {
+        System.out.println("getMessageName");
+        assertEquals("record", instance.getMessageName());
+        
+        instance.setGlobalMessageNumber(19);
+        assertEquals("lap", instance.getMessageName());
+
+        instance.setGlobalMessageNumber(222);
+        assertEquals("not found", instance.getMessageName());
+        
+        instance.setGlobalMessageNumber(65535);
+        assertEquals("not found", instance.getMessageName());
+    }
+
+    @Test
+    public void testGetDataRecords()
+    {
+        System.out.println("getDataRecords");
+        List<FitDataRecord> records=instance.getDataRecords();
+        assertNotNull(records);
+        assertEquals(3, records.size());
+    }
+
 }
