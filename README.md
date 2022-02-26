@@ -22,7 +22,7 @@ A **FitMessage** consists of
 
 The global FIT profile is read into **FitGlobalProfile** from the excel file enclosed in de Garmin/ANT FIT SDK. The profile definition consists of data types and global message field definitions.
 
-**FitReader** is the entry point of the library. It offers functions to read FIT files. The main function is **FitReader:readFile()**, which does the reading and conversion and results in the **FitRecordRepository** containing the read **FitMessage**s. The **FitMessageRepository** can be used to obtain the message definition and data. 
+**FitReader** is the entry point of the library. It offers functions to read FIT files. The main fun. ction is **FitReader:readFile()**, which does the reading and conversion and results in the **FitRecordRepository** containing the read **FitMessage**s. The **FitMessageRepository** can be used to obtain the message definition and data. 
 
 ![](image/design.png)
 
@@ -31,6 +31,19 @@ Messages (message and field names) are defined in /src/main/resources/Profile.xl
 
 Developer fields within a message are defined in the FIT file itself, by means of two regular fields (_developer_data_id_ and _field_description_).
 
+---
+**Redefinition of Global Message Types**
+
+The FIT file is a collection of data records, each data record contains values accroding to a message definition. This message definition is defined in the FIT file by a definition record (which refers to the Global FIT Profile). 
+A message definition is identified by a Local Message Type (identifying) encoded in 4 bits. Therefore only 16 Local Message Types can be maintained. Data records refer to this Local Message Type. The interpreter uses this Local Message TYpe to attach a Data Record to a Message Definition. 
+
+With increasing possibilities of devices, the number of possible FIT message definitions increases and a device like my Edge830 uses more than 16 message definitions. Fortunatelly the FIT spefication allows for reuse of the Local Message Type: a Local Message Type can be reused for an other Message Definition Record. This implicates that within one FIT file Messages are defined  and redefined all the time. 
+
+*A not so obvious implication is (apparently) that the same Message, like "record", is available in the file under various Local Message Types.*
+
+Therefore the class FitMessageRepository offers the method **getAllMessages(String messageName)**, returning a list of all Messages with the given Message Name (including the data records). This list must be parsed in order to find all Data Records belonging to that Message type.
+
+---
 
 # Building
 Use Maven to compile the source files into /target. The project is recognized by Netbeans as Maven project and can be imported. Or build manually:
@@ -46,6 +59,10 @@ This results in two jar files: one library and one for the javadoc. Usage is ill
 The software uses 
 - hirondelle-date4j-1.5.1.jar
 
+
+# Version history
+* 1.0: Initial version
+* 2.0: Major improvement, rename, bug fixes
 
 # Information
 Javadoc: Refer to the Javadoc in the /target file.
