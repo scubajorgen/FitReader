@@ -155,7 +155,7 @@ public class FitMessageRepository
      * @param messageName The name of the message, e.g. 'record', as defined in the global profile
      * @return A list with all the fields with that name
      */
-    public List<FitMessage> getAllFields(String messageName)
+    public List<FitMessage> getAllMessages(String messageName)
     {
         List<FitMessage> allFields;
         

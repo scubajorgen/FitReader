@@ -92,7 +92,7 @@ public class FitMessageRepositoryTest
     {
         System.out.println("getAllFields");
 
-        List<FitMessage> messages=instance.getAllFields("record");
+        List<FitMessage> messages=instance.getAllMessages("record");
         assertEquals(2, messages.size());
         FitMessage message=messages.get(0);
         assertEquals(14, message.getLocalMessageType());
