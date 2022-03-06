@@ -217,7 +217,8 @@ public class FitMessageRepository
         
         for (FitMessage record : messages)
         {
-            LOGGER.info("MESSAGE {}: {} records, local message type {}", 
+            LOGGER.info("MESSAGE {}-{}: {} records, local message type {}", 
+                    record.getGlobalMessageNumber(),
                     FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber()),
                     record.getNumberOfRecords(),
                     record.getLocalMessageType());
