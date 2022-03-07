@@ -429,6 +429,7 @@ public class FitGlobalProfile
 
     /**
      * Get the name of the base type, based on the base type number as in the file.
+     * It is essentially equivalent to getTypeValueName("fit_base_type", baseTypeNumber).
      * @param baseTypeNumber The base type number as present in the definition message (0-255)
      * @return The name, or "not found" if the number is illegal
      */
@@ -440,19 +441,35 @@ public class FitGlobalProfile
         ProfileTypeValue                value;
         
         ProfileType type=globalProfileTypes.get("fit_base_type");
-        iterator    =type.getValues().iterator();
-        found       =false;
         name="not found";
-        while (iterator.hasNext() && !found)
+        if (type!=null)
         {
-            value=iterator.next();
-            if (baseTypeNumber==value.getValue())
+            name=type.getValueName(baseTypeNumber);
+            if (name==null)
             {
-                name=value.getValueName();
-                found=true;
+                name="not found";
             }
         }
         return name;        
+    }
+   
+    /**
+     * Gets the value name for given data type, based on the value ID
+     * @param typeName
+     * @param valueId
+     * @return The name or null if non-existent
+     */
+    public String getTypeValueName(String typeName, int valueId)
+    {
+        String name;
+        
+        name=null;
+        ProfileType type=globalProfileTypes.get(typeName);
+        if (type!=null)
+        {
+            name=type.getValueName(valueId);
+        }
+        return name;
     }
     
     /**

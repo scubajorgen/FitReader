@@ -168,6 +168,19 @@ public class FitGlobalProfileTest
     }
 
     /**
+     * Test of getTypeValueName method, of class FitGlobalProfile.
+     */
+    @Test
+    public void testGetTypeValueName()
+    {
+        System.out.println("getTypeValueName");
+        assertEquals("uint16z", instance.getTypeValueName("fit_base_type", 139));
+        assertEquals("cycling", instance.getTypeValueName("sport", 2));
+        assertNull(instance.getTypeValueName("sport", 255));
+        assertNull(instance.getTypeValueName("non_existent", 1));
+    }
+
+    /**
      * Test of sintToLatLon method, of class FitGlobalProfile.
      */
     /*
