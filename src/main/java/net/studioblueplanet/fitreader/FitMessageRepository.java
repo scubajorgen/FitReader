@@ -225,7 +225,7 @@ public class FitMessageRepository
             fields=record.getFieldDefintions();
             for (FitMessageField field : fields)
             {
-                LOGGER.info(field.definition.toString());
+                LOGGER.info(field.toString());
             }
         }
     }
