@@ -232,7 +232,7 @@ public class FitReaderTest
         assertEquals(-4.9991618469, message.getLatLonValue(0, "position_long"), 0.0000001);
          
         // Compressed timestamps
-        message=repository.getFitMessage("waypoints");
+        message=repository.getFitMessage("location");
         size=message.getNumberOfRecords();   
         assertEquals(4, size);
         assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());

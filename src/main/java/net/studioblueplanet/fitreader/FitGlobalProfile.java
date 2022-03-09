@@ -78,57 +78,75 @@ public class FitGlobalProfile
         int         maxRow;
         ProfileType type;
         long        value;
+        String      typeName;
+        String      valueName;
         
         type=null;
-        globalProfileTypes=new HashMap<>();
         int i = 0;
         maxRow=sheet.getLastRowNum();
         for (i=1; i<=maxRow; i++) 
         {
             Row  row=sheet.getRow(i);
-
-            Cell typeNameCell       =row.getCell(0);
-            Cell typeBaseTypeCell   =row.getCell(1);
-
-            if (typeNameCell!=null && typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
+            if (row!=null)
             {
-                type=new ProfileType(typeNameCell.getStringCellValue(), 
-                                     typeBaseTypeCell.getStringCellValue());
-                globalProfileTypes.put(typeNameCell.getStringCellValue(), type);
-            }
-            else
-            {
-                Cell valueNameCell      =row.getCell(2);
-                Cell valueCell          =row.getCell(3);
-                if (type!=null)
+                Cell typeNameCell       =row.getCell(0);
+                Cell typeBaseTypeCell   =row.getCell(1);
+
+                if (typeNameCell!=null && typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
                 {
-
-                    if (valueCell.getCellType()==CellType.STRING)
+                    typeName=typeNameCell.getStringCellValue();
+                    // Check if the datatype already exists. If so, update it
+                    if (globalProfileTypes.containsKey(typeName))
                     {
-                        if (valueCell.getStringCellValue().toLowerCase().startsWith("0x"))
-                        {
-                            value=Long.decode(valueCell.getStringCellValue());
-                        }
-                        else
-                        {
-                            value=Long.parseLong(valueCell.getStringCellValue().trim());
-                        }
-                        type.addTypeValue(valueNameCell.getStringCellValue(), value);
-                    }
-                    else if (valueCell.getCellType()==CellType.NUMERIC)
-                    {
-                        value=(int)valueCell.getNumericCellValue();
-                        type.addTypeValue(valueNameCell.getStringCellValue(), value);
+                        type=globalProfileTypes.get(typeName);
                     }
                     else
                     {
-                        LOGGER.error("Unexpected value in {}", GLOBALPROFILE);
+                        type=new ProfileType(typeName, 
+                                             typeBaseTypeCell.getStringCellValue());
+                        globalProfileTypes.put(typeNameCell.getStringCellValue(), type);
                     }
-
                 }
                 else
                 {
-                    LOGGER.error("Unexpected value in {}", GLOBALPROFILE);
+                    Cell valueNameCell      =row.getCell(2);
+                    Cell valueCell          =row.getCell(3);
+                    if (type!=null && valueNameCell!=null && valueCell!=null)
+                    {
+                        valueName=valueNameCell.getStringCellValue();
+                        if (valueCell.getCellType()==CellType.STRING)
+                        {
+                            if (valueCell.getStringCellValue().toLowerCase().startsWith("0x"))
+                            {
+                                value=Long.decode(valueCell.getStringCellValue());
+                            }
+                            else
+                            {
+                                value=Long.parseLong(valueCell.getStringCellValue().trim());
+                            }
+                            // Remove existing value with the same name
+                            if (type.valueExists(valueName))
+                            {
+                                type.removeValueByName(valueName);
+                            }
+                            type.addTypeValue(valueName, value);
+                        }
+                        else if (valueCell.getCellType()==CellType.NUMERIC)
+                        {
+                            value=(int)valueCell.getNumericCellValue();
+                            // Remove existing value with the same name
+                            if (type.valueExists(valueName))
+                            {
+                                type.removeValueByName(valueName);
+                            }
+                            type.addTypeValue(valueNameCell.getStringCellValue(), value);
+                        }
+                        else
+                        {
+                            LOGGER.error("Unexpected value in {}", GLOBALPROFILE);
+                        }
+
+                    }
                 }
             }
         }
@@ -150,8 +168,6 @@ public class FitGlobalProfile
         int                         lineNumber;
         int                         maxRows;
         
-        globalProfileFields=new ArrayList<>();
-
         lineNumber      =0;
         messageName     ="";
         messageNumber   =65535;
@@ -164,7 +180,7 @@ public class FitGlobalProfile
             if (row!=null)
             {
                 Cell messageNameCell=row.getCell(0);
-                if (messageNameCell!=null)
+                if (messageNameCell!=null && messageNameCell.getCellType()==CellType.STRING && messageNameCell.getStringCellValue().length()>0)
                 {
                     name= messageNameCell.getStringCellValue().trim();
                     if (name.length()>0)
@@ -186,7 +202,14 @@ public class FitGlobalProfile
                         name                        =fieldNameCell.getStringCellValue().trim();
                         fieldNumber                 =(int)row.getCell(1).getNumericCellValue();
                         fieldDescription            =row.getCell(2).getStringCellValue();
-                        field                       =new FitFieldDefinition();
+                        
+                        // Check if the field already exists; if so, reuse
+                        field=findFieldDefinition(messageNumber, fieldNumber);
+                        if (field==null)
+                        {       
+                            field                   =new FitFieldDefinition();
+                            globalProfileFields.add(field);
+                        }
                         field.messageName           =messageName;
                         field.messageNumber         =messageNumber;
                         field.fieldNumber           =fieldNumber;
@@ -218,13 +241,34 @@ public class FitGlobalProfile
                         {
                             field.units="";
                         }
-                        globalProfileFields.add(field);
                     }
                 }
             }
         }
         LOGGER.info("Read "+globalProfileFields.size()+" global profile field definitions");
     }
+    
+    /**
+     * Finds the FIT field definition with given numbers in the array 
+     * @param messageNumber Message ID
+     * @param fieldNumber Field ID
+     * @return 
+     */
+    private FitFieldDefinition findFieldDefinition(int messageNumber, int fieldNumber)
+    {
+        FitFieldDefinition returnField;
+        
+        returnField=null;
+        for (FitFieldDefinition field : globalProfileFields)
+        {
+            if (field.messageNumber==messageNumber && field.fieldNumber==fieldNumber)
+            {
+                returnField=field;
+            }
+        }
+        return returnField;
+    }
+    
     
     /**
      * Read the Garmin Global Profile from the Profile.xslx excel file.
@@ -238,9 +282,14 @@ public class FitGlobalProfile
             
             if (file!=null)
             {
-                Workbook workbook = new XSSFWorkbook(file);
+                globalProfileTypes  =new HashMap<>();
+                globalProfileFields =new ArrayList<>();
+
+                Workbook workbook   = new XSSFWorkbook(file);
                 this.parseGlobalProfileTypeSheet(workbook.getSheetAt(0));
                 this.parseGlobalProfileMessageSheet(workbook.getSheetAt(1));
+                this.parseGlobalProfileTypeSheet(workbook.getSheetAt(2));
+                this.parseGlobalProfileMessageSheet(workbook.getSheetAt(3));
                 file.close();
             }
             else
@@ -526,5 +575,4 @@ public class FitGlobalProfile
     {
         return this.globalProfileFields.size();
     }
-
 }

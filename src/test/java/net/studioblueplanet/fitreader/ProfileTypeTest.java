@@ -136,4 +136,31 @@ public class ProfileTypeTest
         String result = instance.getValueName(value);
         assertEquals(expResult, result);
     }
+
+    /**
+     * Test of valueExists method, of class ProfileType.
+     */
+    @Test
+    public void testValueExists()
+    {
+        System.out.println("valueExists");
+        assertEquals(true, instance.valueExists("male"));
+        assertEquals(true, instance.valueExists("female"));
+        assertEquals(false, instance.valueExists("does not exist"));
+    }
+
+    /**
+     * Test of removeValueByName method, of class ProfileType.
+     */
+    @Test
+    public void testRemoveValueByName()
+    {
+        System.out.println("removeValueByName");
+        assertEquals(true, instance.valueExists("male"));
+        assertEquals(true, instance.valueExists("female"));
+        instance.removeValueByName("female");
+        assertEquals(true, instance.valueExists("male"));
+        assertEquals(false, instance.valueExists("female"));
+    }
+
 }

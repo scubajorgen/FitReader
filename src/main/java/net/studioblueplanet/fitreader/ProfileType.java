@@ -97,6 +97,41 @@ public class ProfileType
         return longValue;
     }
     
+
+    /**
+     * Indicates whether a value exists with given name
+     * @param valueName Name to look for
+     * @return True if exists, false if not.
+     */
+    public boolean valueExists(String valueName)
+    {
+        boolean exists=false;
+        
+        for (ProfileTypeValue value : values)
+        {
+            if (value.getValueName().equals(valueName))
+            {
+                exists=true;
+            }
+        }
+        return exists;
+    }
+    
+    /**
+     * Remove value by name
+     * @param valueName The name of the profile type value to remove
+     */
+    public void removeValueByName(String valueName)
+    {
+        for (ProfileTypeValue value : values)
+        {
+            if (value.getValueName().equals(valueName))
+            {
+                values.remove(value);
+            }
+        }
+    }
+    
     /**
      * Find the profile type value name based on integer value
      * @param value Value to look for

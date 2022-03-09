@@ -72,6 +72,7 @@ public class FitGlobalProfileTest
         System.out.println("getGlobalMessageDescription");
         assertEquals("file_id", instance.getGlobalMessageName(0));
         assertEquals("met_zone", instance.getGlobalMessageName(10));
+        assertEquals("location", instance.getGlobalMessageName(29));
         assertEquals("not found", instance.getGlobalMessageName(999));
     }
 
@@ -85,6 +86,7 @@ public class FitGlobalProfileTest
         int expResult = 0;
         assertEquals(0, instance.getGlobalMessageNumber("file_id"));
         assertEquals(10, instance.getGlobalMessageNumber("met_zone"));
+        assertEquals(29, instance.getGlobalMessageNumber("location"));
         assertEquals(65535, instance.getGlobalMessageNumber("non existing name"));
     }
 
@@ -179,6 +181,8 @@ public class FitGlobalProfileTest
         assertNull(instance.getTypeValueName("sport", 255));
         assertNull(instance.getTypeValueName("non_existent", 1));
     }
+    
+    
 
     /**
      * Test of sintToLatLon method, of class FitGlobalProfile.
