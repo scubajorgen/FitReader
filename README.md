@@ -7,7 +7,13 @@ The [FIT protocol](https://developer.garmin.com/fit/overview/) is based on Messa
 A device, for example my Edge830 cycle computer, support a certain subset of the Global FIT Profile. This subset is called the Device Profile.
 
 ---
-Note: Apparently with updates of the Global FIT Profile, messages are added. However, sometimes Message definitions are _removed_. An example is the Waypoints message (ID 29). However, this message is used by devices like the Edge 810 and Edge 830. Being not present in the Global FIT Profile means this message is no longer recognized in the FIT data.
+Note: Apparently with updates of the _Global FIT Profile_, new data type and message definitions are added. However, not all Message we encounter in real devices are defined in the Global FIT Profile. An example is the message with ID 29. It is used e.g. in the Garmin Edge810 and Edge830 in the locations.fit file for using locations/waypoints. Therefore the _profile.xlsx_ file that is part of this project consists of 4 tabs, two taken from the official Global FIT profile, two addional tabs: 
+* types - The data type definition as copied from the profile.xml in the Garmin FIT SDK
+* messages - The message definition as copied from the profile.xml in the Garmin FIT SDK
+* additional types - Data types that are not part of the Global FIT profile. For example obtained by reverse engineering
+* additional messages -  Messages that are not part of the Global FIT profile
+
+During program executions the sheets are read in and merged. In this way additional data types, messages and fields can be added.
 
 ---
 
