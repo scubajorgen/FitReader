@@ -195,4 +195,14 @@ public class FitMessageRepositoryTest
         // The 'waypoint' field (id=29) no longer exists...
         assertEquals("location", messages.get(2));
     }
+    
+    
+    @Test
+    public void testReverseEngineeredFields()
+    {
+        FitMessageRepository repository=FitReader.getInstance().readFile("src/test/resources/ActivityEdge830.fit", true);
+        repository.dumpMessageDefintions();
+        FitMessage message=repository.getFitMessage("battery_status");
+        assertEquals(60, message.getIntValue(0, "level"));
+    }
 }
