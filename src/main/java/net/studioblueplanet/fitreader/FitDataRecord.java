@@ -107,7 +107,7 @@ public class FitDataRecord
      * unsigned long integer value.
      * @param offset Start within the array
      * @param size   Number of bytes
-     * @return The integer
+     * @return The integer. Unfortunatelly it is signed!!
      */
     public long bytesToUnsignedLong(int offset, int size)
     {
