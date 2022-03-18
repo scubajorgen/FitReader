@@ -63,8 +63,8 @@ public class FitDataRecordTest
         assertEquals(  0x01, instanceLE.bytesToUnsignedInt(0, 1));
         assertEquals(0xFE67, instanceLE.bytesToUnsignedInt(3, 2));
         assertEquals(0xFEDC, instanceBE.bytesToUnsignedInt(4, 2));
-        assertEquals(0xFFFFFFFF, instanceBE.bytesToUnsignedInt(16, 8));
-        assertEquals(-1, instanceBE.bytesToUnsignedInt(16, 8));        //FAIL
+        assertEquals(0xFFFFFFFFL, instanceBE.bytesToUnsignedInt(16, 8));
+        assertEquals(4294967295L, instanceBE.bytesToUnsignedInt(16, 8));
     }
 
     /**
