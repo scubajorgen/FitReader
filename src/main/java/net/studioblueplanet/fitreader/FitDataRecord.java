@@ -52,12 +52,12 @@ public class FitDataRecord
      * unsigned integer value.
      * @param offset Start within the array
      * @param size   Number of bytes
-     * @return The integer
+     * @return The integer as long
      */
-    public int bytesToUnsignedInt(int offset, int size)
+    public long bytesToUnsignedInt(int offset, int size)
     {
-        int i;
-        int value;
+        int  i;
+        long value;
         
         i=0;
         value=0;
@@ -73,6 +73,7 @@ public class FitDataRecord
             }
             i++;
         }
+        value&=0xFFFFFFFFL;
         return value;
     }
     
@@ -83,9 +84,9 @@ public class FitDataRecord
      * @param size   Number of bytes
      * @return The integer
      */
-    public int bytesToSignedInt(int offset, int size)
+    public long bytesToSignedInt(int offset, int size)
     {
-        int     value;
+        long    value;
         boolean sign;
         
         value=this.bytesToUnsignedInt(offset, size);
@@ -95,7 +96,7 @@ public class FitDataRecord
         
         if (sign)
         {
-            value|= (((int)-1)<<(8*size));
+            value|= ((-1L)<<(8*size));
         }
         
         return value;
@@ -149,7 +150,7 @@ public class FitDataRecord
         
         if (sign)
         {
-           value|= ((long)(-1)<<(8*size));
+           value|= (-1L<<(8*size));
         }
         
         return value;

@@ -241,16 +241,16 @@ public class FitMessage
             found=false;
             while (i<fieldDescription.getNumberOfRecords() && !found)
             {
-                devIx   =fieldDescription.getIntValue(i, "developer_data_index", false);
-                num     =fieldDescription.getIntValue(i, "field_definition_number", false);
+                devIx   =(int)fieldDescription.getIntValue(i, "developer_data_index", false);
+                num     =(int)fieldDescription.getIntValue(i, "field_definition_number", false);
 
                 if (developerDataIndex==devIx && fieldNumber==num)
                 {
                     field.fieldName             =fieldDescription.getStringValue(i, "field_name");
                     field.units                 =fieldDescription.getStringValue(i, "units");
-                    field.nativeMessageNumber   =fieldDescription.getIntValue(i, "native_mesg_num", false);
-                    field.nativeFieldNumber     =fieldDescription.getIntValue(i, "native_field_num", false);
-                    field.baseTypeId            =fieldDescription.getIntValue(i, "fit_base_type_id", false);
+                    field.nativeMessageNumber   =(int)fieldDescription.getIntValue(i, "native_mesg_num", false);
+                    field.nativeFieldNumber     =(int)fieldDescription.getIntValue(i, "native_field_num", false);
+                    field.baseTypeId            =(int)fieldDescription.getIntValue(i, "fit_base_type_id", false);
                     field.baseType              =globalProfile.getBaseTypeName(field.baseTypeId);
 
                     found=true;
@@ -316,7 +316,7 @@ public class FitMessage
             if (hasTimeStamp)
             {
                 FitMessageField field=this.getMessageField(TIMESTAMP_INDEX);
-                mostRecentTimeStamp=record.bytesToSignedInt(field.byteArrayPosition, 4);
+                mostRecentTimeStamp=(int)record.bytesToSignedInt(field.byteArrayPosition, 4);
                 previousTimeStampOffset=mostRecentTimeStamp & 0x1F;
             }
         }
@@ -556,7 +556,7 @@ public class FitMessage
      * @param fieldName Name of the field as in the global profile
      * @return The integer value or zero if an error occurred
      */
-    public int getIntValue(int index, String fieldName)
+    public long getIntValue(int index, String fieldName)
     {
         return getIntValue(index, fieldName, false);
     }
@@ -570,9 +570,9 @@ public class FitMessage
      *                       or a regular message field (false)
      * @return The integer value or zero if an error occurred
      */
-    public int getIntValue(int index, String fieldName, boolean developerField)
+    public long getIntValue(int index, String fieldName, boolean developerField)
     {
-        int                         value;
+        long                        value;
         FitMessageField             field;
         FitDeveloperField           devField;
         int                         arrayPosition;
@@ -854,7 +854,7 @@ public class FitMessage
      */
     public double getScaledValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double scaledValue;
         double scale;
         double offset;
@@ -875,7 +875,7 @@ public class FitMessage
      */
     public double getLatLonValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double latlon;
         
         value=this.getIntValue(index, fieldName);
@@ -886,14 +886,15 @@ public class FitMessage
     
     /**
      * This method returns a particular value of the given field at given index
-     * as enhanced height value. 
+     * as enhanced height value. Deprecated. Use getScaledValue().
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
      * @return The lat or lon value or 0.0 if an error occurred.
      */
+    @Deprecated
     public double getAltitudeValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double altitude;
         
         value=this.getIntValue(index, fieldName);
@@ -903,14 +904,15 @@ public class FitMessage
     
     /**
      * This method returns a particular value of the given field at given index
-     * as enhanced speed value. 
+     * as enhanced speed value. Deprecated. Use getScaledValue().
      * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The speed value or 0.0 if an error occurred.
      */
+    @Deprecated
     public double getSpeedValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double speed;
         
         value=this.getIntValue(index, fieldName);
@@ -927,7 +929,7 @@ public class FitMessage
      */
     public double getElapsedTimeValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double seconds;
 
         value=this.getIntValue(index, fieldName);
@@ -937,14 +939,15 @@ public class FitMessage
 
     /**
      * This method returns a particular value of the given field at given index
-     * as enhanced distance value. 
+     * as enhanced distance value. Deprecated. Use getScaledValue().
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
      * @return The distance value or 0.0 if an error occurred.
      */
+    @Deprecated
     public double getDistanceValue(int index, String fieldName)
     {
-        int value;
+        long   value;
         double distance;
         
         value=this.getIntValue(index, fieldName);
