@@ -1060,6 +1060,48 @@ public class FitMessage
     }
     
     /**
+     * Dump the data records of this message to CSV, for import in e.g. Excel
+     */
+    public void dumpRecordsToCsv()
+    {
+        boolean isFirst;
+        
+        isFirst=true;
+        for(FitMessageField field: fieldDefinitions)
+        {
+            if (isFirst)
+            {
+                isFirst=false;
+            }
+            else
+            {
+                System.out.print(",");
+            }
+            System.out.print(field.definition.fieldName);
+        }
+        System.out.println();
+
+        for (int i=0; i<records.size(); i++)
+        {
+            isFirst=true;
+            for(FitMessageField field: fieldDefinitions)
+            {
+            if (isFirst)
+            {
+                isFirst=false;
+            }
+            else
+            {
+                System.out.print(",");
+            }
+                System.out.print(this.getIntValue(i, field.definition.fieldName));
+            }
+            System.out.println();
+        }
+        
+    }
+    
+    /**
      * Returns the list of message field definitions within this message
      * @return The list
      */

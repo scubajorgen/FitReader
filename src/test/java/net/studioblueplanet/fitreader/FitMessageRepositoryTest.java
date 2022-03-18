@@ -201,8 +201,8 @@ public class FitMessageRepositoryTest
     public void testReverseEngineeredFields()
     {
         FitMessageRepository repository=FitReader.getInstance().readFile("src/test/resources/ActivityEdge830.fit", true);
-        repository.dumpMessageDefintions();
         FitMessage message=repository.getFitMessage("battery_status");
         assertEquals(60, message.getIntValue(0, "level"));
+        message.dumpRecordsToCsv();
     }
 }
