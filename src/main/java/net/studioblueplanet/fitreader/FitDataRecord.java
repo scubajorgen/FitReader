@@ -156,6 +156,34 @@ public class FitDataRecord
         return value;
     }
     
+    /**
+     * Helper method. Converts a section of the byte array to  
+     * float value.
+     * @param offset Start within the array
+     * @param size   Number of bytes: 4 or 8
+     * @return The float
+     */
+    public double bytesToFloat(int offset, int size)
+    {
+        long    value;
+        double  floatValue;
+        boolean sign;
+        
+        
+        if (size==4)
+        {
+            value=this.bytesToUnsignedInt(offset, size);
+            floatValue=Float.intBitsToFloat((int)value);
+        }
+        else
+        {
+            value=this.bytesToUnsignedLong(offset, size);
+            floatValue=Double.longBitsToDouble(value);
+        }
+        return floatValue;
+    }
+    
+    
     
     /**
      * Helper method. Converts a section of the byte array to  

@@ -788,6 +788,79 @@ public class FitMessage
     }
     
     /**
+     * Return a particular value as float.
+     * @param index Index in the byte array
+     * @param fieldName Name of the field to return
+     * @param developerField Indicates whether a developer field is requested (true)
+     *                       or a regular message field (false)
+     * @return The value as float
+     */
+    public double getFloatValue(int index, String fieldName, boolean developerField)
+    {
+        double                      value;
+        FitMessageField             field;
+        FitDeveloperField           devField;
+        int                         arrayPosition;
+        int                         baseType;
+        
+        value           =0L;
+        arrayPosition   =-1;
+        baseType        =-1;
+        
+        if (developerField)
+        {
+            devField=getDeveloperField(fieldName);
+            if (devField!=null)
+            {
+                arrayPosition   =devField.byteArrayPosition;
+                baseType        =devField.baseTypeId;
+            }
+        }
+        else
+        {
+            field=this.getMessageField(fieldName);
+            if (field!=null)
+            {
+                arrayPosition   =field.byteArrayPosition;
+                baseType        =field.baseType;
+            }
+        }
+
+        if (arrayPosition>=0)
+        {
+            if (index<records.size() && index>=0)
+            {
+                switch (baseType)
+                {
+                    case FitDataRecord.BASETYPE_FLOAT32:
+                        value=records.get(index).bytesToFloat(arrayPosition, 4);
+                        break;
+                    case FitDataRecord.BASETYPE_FLOAT64:
+                        value=records.get(index).bytesToFloat(arrayPosition, 8);
+                        break;
+                    default:
+                        LOGGER.info("Retrieving record value: value is not a float");
+                        break;
+                }
+            }
+            else
+            {
+                LOGGER.error("Retrieving record value: index out of bounds");
+            }
+        }
+        else
+        {
+            LOGGER.info("Retrieving record value: Field with name {} not found.", fieldName);
+        }
+        return value;
+    }
+
+    public double getFloatValue(int index, String fieldName)
+    {
+        return getFloatValue(index, fieldName, false);
+    }
+    
+    /**
      * This method returns a particular value of the given field at given index
      * as TimeStamp value, taking a time zone offset into account.
      * Many of the records in the FIT global profile

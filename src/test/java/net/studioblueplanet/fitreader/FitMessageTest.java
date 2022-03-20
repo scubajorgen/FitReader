@@ -64,7 +64,7 @@ public class FitMessageTest
         
         
         instance=new FitMessage(123, FitMessage.HeaderType.NORMAL, true);
-        instance.setGlobalMessageNumber(20);         // 'record' message
+        instance.setGlobalMessageNumber(20);          // 'record' message
         instance.addMessageField(20,   0, 4, 133);    // 'position_lat'
         instance.addMessageField(20,   1, 4, 133);    // 'position_long'
         instance.addMessageField(20,   2, 2, 132);    // 'altitude'
@@ -72,6 +72,7 @@ public class FitMessageTest
         instance.addMessageField(20, 253, 4, 133);    // 'timestamp'
         instance.addMessageField(20,   5, 4, 134);    // 'distance'
         instance.addMessageField(20,   6, 2, 132);    // 'speed'
+        instance.addMessageField(20, 114, 4, 0x88);    // 'grit' (FLOAT32)
         
         instance.addDeveloperField(20, 2, 1, 3, developerFieldDefinition);
         instance.addDeveloperField(20, 4, 8, 3, developerFieldDefinition);
@@ -84,6 +85,7 @@ public class FitMessageTest
                       0, 0, 0, 0,
                       100,0,0,0,
                       200,0,
+                      0x00, 0x40, 0x9a, 0x44, //1234.0
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         int[] record5={0xD4, 0x11, 0x8E, 0x03,
@@ -93,6 +95,7 @@ public class FitMessageTest
                       60, 0, 0, 0,
                       100,0,0,0,
                       200,0,
+                      0x44, 0x9a, 0x40, 0x00, //1234.0
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         int[] record6={0xD4, 0x11, 0x8E, 0x03,
@@ -102,6 +105,7 @@ public class FitMessageTest
                       0xFF, 0xFF, 0xFF, 0xFF,
                       100,0,0,0,
                       200,0,
+                      0x44, 0x9a, 0x40, 0x00, //1234.0
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         instance.addDataRecord(record4);
@@ -167,7 +171,7 @@ public class FitMessageTest
     public void testGetNumberOfFields()
     {
         System.out.println("getNumberOfFields");
-        assertEquals(7, instance.getNumberOfFields());
+        assertEquals(8, instance.getNumberOfFields());
     }
 
 
@@ -203,10 +207,10 @@ public class FitMessageTest
     {
         System.out.println("addMessageField");
         
-        assertEquals(7, instance.getNumberOfFields());
+        assertEquals(8, instance.getNumberOfFields());
         assertNull(instance.getMessageField("power"));
         instance.addMessageField(20, 7, 2, 132);      // 'power'
-        assertEquals(8, instance.getNumberOfFields());
+        assertEquals(9, instance.getNumberOfFields());
         assertEquals("power", instance.getMessageField("power").definition.fieldName);
         assertEquals(7, instance.getMessageField("power").definition.fieldNumber);
     }
@@ -263,6 +267,7 @@ public class FitMessageTest
                       0, 0, 0, 0,
                       100,0,0,0,
                       5,0,
+                      0x00, 0x40, 0x9a, 0x44, //1234.0
                       11,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         assertEquals(3, instance.getNumberOfRecords());
@@ -320,7 +325,7 @@ public class FitMessageTest
         FitDeveloperField result = instance.getDeveloperField("test1");
         assertEquals("test1", result.fieldName);
         assertEquals(2, result.fieldNumber);
-        assertEquals(21, result.byteArrayPosition);
+        assertEquals(25, result.byteArrayPosition);
 
         result = instance.getDeveloperField("non_existent");
         assertNull(result);
@@ -389,7 +394,7 @@ public class FitMessageTest
         FitDeveloperField result = instance.getDeveloperField(2);
         assertEquals("test1", result.fieldName);
         assertEquals(2, result.fieldNumber);
-        assertEquals(21, result.byteArrayPosition);
+        assertEquals(25, result.byteArrayPosition);
     
         result = instance.getDeveloperField(255);
         assertNull(result);
@@ -426,6 +431,17 @@ public class FitMessageTest
         System.out.println("getLongValue");
     }
 
+    /**
+     * Test of getLongValue method, of class FitRecord.
+     */
+    @Test
+    public void testGetFloatValue()
+    {
+        System.out.println("getFloatValue");
+        assertEquals(1234, instance.getFloatValue(0, "grit", false), 0.00001);
+    }
+    
+    
     /**
      * Test of getTimeValue method, of class FitRecord.
      */
@@ -542,7 +558,7 @@ public class FitMessageTest
     {
         System.out.println("getGlobalFieldDefintions");
         List<FitMessageField> result = instance.getFieldDefintions();
-        assertEquals(7, result.size());
+        assertEquals(8, result.size());
         assertEquals("position_lat", result.get(0).definition.fieldName);
     }
 
@@ -577,7 +593,7 @@ public class FitMessageTest
         System.out.println("getMessageFieldNames");
         List<String> names=instance.getMessageFieldNames();
         
-        assertEquals(7, names.size());
+        assertEquals(8, names.size());
         assertEquals("position_lat", names.get(0));
         assertEquals("position_long", names.get(1));
         assertEquals("altitude", names.get(2));
@@ -585,6 +601,7 @@ public class FitMessageTest
         assertEquals("timestamp", names.get(4));
         assertEquals("distance", names.get(5));
         assertEquals("speed", names.get(6));
+        assertEquals("grit", names.get(7));
         
     }
 

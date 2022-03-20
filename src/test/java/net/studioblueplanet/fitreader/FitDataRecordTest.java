@@ -117,6 +117,19 @@ public class FitDataRecordTest
         assertEquals(  -409, instanceLE.bytesToSignedLong(3, 2));
         assertEquals(  -292, instanceBE.bytesToSignedLong(4, 2));
     }
+    
+    @Test
+    public void testButesToFloat()
+    {
+        System.out.println("bytesToFloat");
+        
+        assertEquals(9.30951905225494e+23, instanceLE.bytesToFloat(0, 4), 0.0001E23);
+        assertEquals(2.99881655e-38, instanceBE.bytesToFloat(0, 4), 0.0001E-38);
+
+        assertEquals(-1.5073059223421133E-189, instanceLE.bytesToFloat(0, 8), 0.0001E-189);
+        assertEquals(3.512701837325212E-303  , instanceBE.bytesToFloat(0, 8), 0.0001E-303);
+        
+    }
 
     /**
      * Test of bytesToString method, of class FitDataRecord.
