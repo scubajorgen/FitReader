@@ -477,6 +477,7 @@ public class FitMessageTest
         System.out.println("getScaledValue");
         assertEquals(0.2, instance.getScaledValue(0, "speed"), 0.0001);
         assertEquals(1.0, instance.getScaledValue(0, "altitude"), 0.0001);
+        assertEquals(0.0, instance.getScaledValue(0, "non_existing"), 0.0001);
     }
 
     /**

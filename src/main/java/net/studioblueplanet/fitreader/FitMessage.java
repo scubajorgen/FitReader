@@ -927,15 +927,34 @@ public class FitMessage
      */
     public double getScaledValue(int index, String fieldName)
     {
-        long   value;
-        double scaledValue;
-        double scale;
-        double offset;
+        long                value;
+        double              scaledValue;
+        double              scale;
+        double              offset;
+        FitFieldDefinition  definition;
+        FitMessageField     field;
         
-        scale=this.getMessageField(fieldName).definition.scale;
-        offset=this.getMessageField(fieldName).definition.offset;
-        value=this.getIntValue(index, fieldName, false);
-        scaledValue=(double)value/scale-offset;
+        scaledValue     =0.0;
+        field=getMessageField(fieldName);
+        if (field!=null)
+        {
+            definition      =field.definition;
+            if (definition!=null)
+            {
+                scale       =this.getMessageField(fieldName).definition.scale;
+                offset      =this.getMessageField(fieldName).definition.offset;
+                value       =this.getIntValue(index, fieldName, false);
+                scaledValue =(double)value/scale-offset;
+            }
+            else
+            {
+                LOGGER.error("Message field without Field Definition!!");
+            }
+        }
+        else
+        {
+            LOGGER.warn("Non existing field in message: {}", fieldName);
+        }
         return scaledValue;
     }
     
