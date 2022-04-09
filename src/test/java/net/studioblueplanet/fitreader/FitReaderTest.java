@@ -193,7 +193,7 @@ public class FitReaderTest
         int                     size;
         int                     i;
 
-        System.out.println("readFile");
+        System.out.println("readFile 2");
 
         repository=instance.readFile("src/test/resources/ActivityEdge830.fit", false);
         
@@ -209,7 +209,40 @@ public class FitReaderTest
         assertEquals( 6.72536795, message.getLatLonValue(0, "position_long"), 0.00001);
     }
     
-    
+    @Test
+    public void testReadFile3()
+    {
+        FitMessageRepository    repository;
+        FitMessage               message;
+        int                     size;
+        int                     i;
+
+        System.out.println("readFile 3");
+
+        repository=instance.readFile("src/test/resources/ActivityFenix7.fit", false);
+        
+        repository.dumpMessageDefintions();
+        
+        message=repository.getFitMessage("record");
+        size=message.getNumberOfRecords();   
+        
+        assertEquals(1372, size);
+        assertEquals(11, message.getNumberOfFields());
+        assertEquals( 0, message.getNumberOfDeveloperFields());
+        assertEquals(69, message.getIntValue(1, "heart_rate"));
+        
+        assertEquals(53.01286557689309, message.getLatLonValue(0, "position_lat") , 0.00001);
+        assertEquals(6.724741822108626, message.getLatLonValue(0, "position_long"), 0.00001);
+
+        assertEquals(124, message.getIntValue(1371, "heart_rate"));
+        assertEquals(1.39, message.getScaledValue(1371, "enhanced_speed"), 0.0001);
+        assertEquals(20.2, message.getScaledValue(1371, "enhanced_altitude"), 0.0001);
+
+        message=repository.getFitMessage("file_id");
+        assertEquals(3906, message.getIntValue(0, "product"));
+        // Not in the spec yet...
+//        assertEquals("fenix 7 Solar", FitGlobalProfile.getInstance().getTypeValueName("garmin_product", (int)message.getIntValue(0, "product")));
+    }    
   
     @Test
     public void testReadCompressedTimeStampFile()
