@@ -155,7 +155,7 @@ public class FitReaderTest
         assertEquals(9, message.getNumberOfFields());
         assertEquals(1, message.getNumberOfDeveloperFields());
         
-        assertEquals("2021-07-20 21:11:20.000000000"    , message.getTimeValue        (0, "timestamp").toString());
+        assertEquals("2021-07-20T21:11:20Z[UTC]"    , message.getTimeValue(0, "timestamp").toString());
         assertEquals(   0, message.getIntValue(0, "distance", false));
         assertEquals(1000, message.getIntValue(1, "speed", false));
         assertEquals( 1.0, message.getSpeedValue(1, "speed"), 0.0001);
@@ -260,7 +260,7 @@ public class FitReaderTest
         size=message.getNumberOfRecords();   
         
         assertEquals(1, size);
-        assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());
+        assertEquals("2011-09-04T10:42:45Z[UTC]", message.getTimeValue(0, "timestamp").toString());
         assertEquals( 4.9991618469, message.getLatLonValue(0, "position_lat") , 0.0000001);
         assertEquals(-4.9991618469, message.getLatLonValue(0, "position_long"), 0.0000001);
          
@@ -268,10 +268,10 @@ public class FitReaderTest
         message=repository.getFitMessage("location");
         size=message.getNumberOfRecords();   
         assertEquals(4, size);
-        assertEquals("2011-09-04 10:42:45.000000000", message.getTimeValue(0, "timestamp").toString());
-        assertEquals("2011-09-04 10:42:47.000000000", message.getTimeValue(1, "timestamp").toString());
-        assertEquals("2011-09-04 10:42:55.000000000", message.getTimeValue(2, "timestamp").toString());
-        assertEquals("2011-09-04 10:43:14.000000000", message.getTimeValue(3, "timestamp").toString());
+        assertEquals("2011-09-04T10:42:45Z[UTC]", message.getTimeValue(0, "timestamp").toString());
+        assertEquals("2011-09-04T10:42:47Z[UTC]", message.getTimeValue(1, "timestamp").toString());
+        assertEquals("2011-09-04T10:42:55Z[UTC]", message.getTimeValue(2, "timestamp").toString());
+        assertEquals("2011-09-04T10:43:14Z[UTC]", message.getTimeValue(3, "timestamp").toString());
     }  
     
     @Test

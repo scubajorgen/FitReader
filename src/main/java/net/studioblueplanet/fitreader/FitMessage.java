@@ -8,14 +8,13 @@ package net.studioblueplanet.fitreader;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import java.sql.Timestamp;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
-import hirondelle.date4j.DateTime;
+import java.time.ZonedDateTime;
 
 
 /**
@@ -749,12 +748,11 @@ public class FitMessage
      * @param fieldName Name of the field as in the global profile
      * @return The DateTime value or null if an error occurred.
      */
-    public DateTime getTimeValue(int index, String fieldName)
+    public ZonedDateTime getTimeValue(int index, String fieldName)
     {
         Integer                     val;
         long                        value;
-        DateTime                    dateTime;
-        long                        milliseconds;
+        ZonedDateTime               dateTime;
 
         if (hasField("timestamp"))
         {
@@ -775,15 +773,62 @@ public class FitMessage
         }
         if (value>=0)
         {
-            dateTime=new DateTime("1989-12-31 00:00:00");
-            milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-            milliseconds+=value*1000L;
-            dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
+            dateTime=ZonedDateTime.of(1989, 12, 31, 0,0,0,0, ZoneId.of("UTC"));
+            dateTime=dateTime.plusSeconds(value);
         }
         else
         {
             dateTime=null;
         }
+        return dateTime;
+    }
+    
+    /**
+     * This method returns a particular value of the given field at given index
+     * as TimeStamp value, taking a time zone offset into account.
+     * Many of the records in the FIT global profile
+     * contain a uint32 DateTime value. It represents the number of seconds
+     * since 31-12-1989 00:00.
+     * @param index Record index
+     * @param fieldName Name of the field as in the global profile
+     * @param offset Number of hours difference to GMT
+     * @return The DateTime value or null if an error occurred.
+     */
+    public ZonedDateTime getTimeValue(int index, String fieldName, int offset)
+    {
+        Integer                     val;
+        long                        value;
+        ZonedDateTime               dateTime;
+        
+        if (hasField("timestamp"))
+        {
+            value=this.getIntValue(index, fieldName);
+            value&=0xFFFFFFFFL;
+        }
+        else
+        {
+            val=timeStamps.get(index);
+            if (val!=null)
+            {
+                value=val&0xFFFFFFFFL;
+            }
+            else
+            {
+                value=-1;
+            }
+        }
+        if (value>=0)
+        {
+            dateTime=ZonedDateTime.of(1989, 12, 31, 0,0,0,0, ZoneId.of("UTC"));
+            dateTime=dateTime.plusSeconds(value);
+            dateTime=dateTime.plusHours(offset);
+            
+        }
+        else
+        {
+            dateTime=null;
+        }
+        
         return dateTime;
     }
     
@@ -858,63 +903,6 @@ public class FitMessage
     public double getFloatValue(int index, String fieldName)
     {
         return getFloatValue(index, fieldName, false);
-    }
-    
-    /**
-     * This method returns a particular value of the given field at given index
-     * as TimeStamp value, taking a time zone offset into account.
-     * Many of the records in the FIT global profile
-     * contain a uint32 DateTime value. It represents the number of seconds
-     * since 31-12-1989 00:00.
-     * @param index Record index
-     * @param fieldName Name of the field as in the global profile
-     * @param offset Number of hours difference to GMT
-     * @return The DateTime value or null if an error occurred.
-     */
-    public Timestamp getTimeValue(int index, String fieldName, int offset)
-    {
-        Integer                     val;
-        long                        value;
-        DateTime                    dateTime;
-        long                        milliseconds;
-        Timestamp                   timeStamp;
-        
-        if (hasField("timestamp"))
-        {
-            value=this.getIntValue(index, fieldName);
-            value&=0xFFFFFFFFL;
-        }
-        else
-        {
-            val=timeStamps.get(index);
-            if (val!=null)
-            {
-                value=val&0xFFFFFFFFL;
-            }
-            else
-            {
-                value=-1;
-            }
-        }
-        if (value>=0)
-        {
-            dateTime=new DateTime("1989-12-31 00:00:00");
-
-            milliseconds=dateTime.getMilliseconds(TimeZone.getTimeZone("GMT"));
-            milliseconds+=value*1000L;
-            dateTime=DateTime.forInstant(milliseconds, TimeZone.getTimeZone("GMT"));
-            if (offset >= 0)
-                dateTime = dateTime.plus(0,0,0,offset,0,0,0,null);
-            else
-                dateTime = dateTime.minus(0,0,0,-1 * offset,0,0,0,null);
-            timeStamp=Timestamp.valueOf(dateTime.toString());
-        }
-        else
-        {
-            timeStamp=null;
-        }
-        
-        return timeStamp;
     }
     
     /**

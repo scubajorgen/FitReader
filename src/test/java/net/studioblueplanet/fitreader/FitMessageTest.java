@@ -5,6 +5,7 @@
  */
 package net.studioblueplanet.fitreader;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -450,9 +451,9 @@ public class FitMessageTest
     {
         System.out.println("getTimeValue");
         
-        assertEquals("1989-12-31 00:00:00", instance.getTimeValue(0, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
-        assertEquals("1989-12-31 00:01:00", instance.getTimeValue(1, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
-        assertEquals("2126-02-06 06:28:15", instance.getTimeValue(2, "timestamp").format("YYYY-MM-DD hh:mm:ss"));
+        assertEquals("1989-12-31 00:00:00", instance.getTimeValue(0, "timestamp").format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        assertEquals("1989-12-31 00:01:00", instance.getTimeValue(1, "timestamp").format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        assertEquals("2126-02-06 06:28:15", instance.getTimeValue(2, "timestamp").format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /**
@@ -462,10 +463,10 @@ public class FitMessageTest
     public void testGetTimeValue_3args()
     {
         System.out.println("getTimeValue");
-        assertEquals("1989-12-31 01:00:00.0", instance.getTimeValue(0, "timestamp",  1).toString());
-        assertEquals("1989-12-30 22:00:00.0", instance.getTimeValue(0, "timestamp", -2).toString());
-        assertEquals("1989-12-31 02:01:00.0", instance.getTimeValue(1, "timestamp", 2).toString());
-        assertEquals("2126-02-06 06:28:15.0", instance.getTimeValue(2, "timestamp", 0).toString());
+        assertEquals("1989-12-31 01:00:00", instance.getTimeValue(0, "timestamp",  1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        assertEquals("1989-12-30 22:00:00", instance.getTimeValue(0, "timestamp", -2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        assertEquals("1989-12-31 02:01:00", instance.getTimeValue(1, "timestamp",  2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        assertEquals("2126-02-06 06:28:15", instance.getTimeValue(2, "timestamp",  0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /**
