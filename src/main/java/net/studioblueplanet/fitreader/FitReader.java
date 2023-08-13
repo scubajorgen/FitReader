@@ -38,7 +38,6 @@ public class FitReader
 {   
     private static final Logger     LOGGER = LogManager.getLogger(FitReader.class);
     private static FitReader        theInstance=null;
-    private FitMessageRepository    repository;
 
     /**
      * Constructor. It is private, since the pattern used is Singleton.
@@ -59,7 +58,6 @@ public class FitReader
         int     i;
         int     bytesRead;
         int     recordSize;
-        int     j;
         int[]   bytes;
         
         bytesRead=0;
@@ -103,7 +101,7 @@ public class FitReader
      * @param record The record to add the definition to
      * @throws IOException In case of misread
      */
-    private int parseDefinitionMessage(CrcReader reader, InputStream in, FitMessage record, boolean hasDeveloperData) throws IOException
+    private int parseDefinitionMessage(CrcReader reader, InputStream in, FitMessageRepository repository, FitMessage record, boolean hasDeveloperData) throws IOException
     {
         int bytesRead;
         int architecture;
@@ -278,7 +276,7 @@ public class FitReader
                 // Create a new record
                 record=new FitMessage(localMessageType, headerType, hasDeveloperData);
                 // Parse the data (field definitions)
-                bytesRead+=this.parseDefinitionMessage(reader, in, record, hasDeveloperData);
+                bytesRead+=this.parseDefinitionMessage(reader, in, repository, record, hasDeveloperData);
                 // Add the record to the repository
                 repository.addFitMessage(record);
                 // Dump the record information
@@ -311,10 +309,7 @@ public class FitReader
                     LOGGER.error("Error: record to add the data to appears to have no definition message");
                 }
             }
-            
         }
-        
-        
         return bytesRead;
     }
     
@@ -342,11 +337,11 @@ public class FitReader
     public FitMessageRepository readInputStream(InputStream in, boolean ignoreCrc)
     {
         FitHeader               fitHeader;
-        FitReader               fitReader;
         int                     bytesExpected;
         int                     bytesRead;
         int                     crc;
         CrcReader               reader;
+        FitMessageRepository    repository;
      
         repository=new FitMessageRepository();
         reader=new CrcReader();
@@ -410,8 +405,7 @@ public class FitReader
             }
         }
         return repository;
-    }
-            
+    }            
 
     
     /**
@@ -453,5 +447,4 @@ public class FitReader
     {
         return readFile(fileName, true);
     }
-    
 }
