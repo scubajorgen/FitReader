@@ -31,7 +31,8 @@ import org.apache.logging.log4j.LogManager;
 
 /**
  * This class is the entry point for this library. It is the reader that 
- * reads the .FIT file.
+ * reads the .FIT file. It returns the FitMessageRepository that gives access
+ * to the .FIT data.
  * @author Jorgen
  */
 public class FitReader
@@ -331,6 +332,7 @@ public class FitReader
     /**
      * This method reads a .FIT file from given input stream
      * @param in The input stream
+     * @param ignoreCrc Indicates that CRC errors should be ignored
      * @return A FitRepository containing all messages and data records read or
      *         null if a CRC error occurred.
      */
@@ -339,7 +341,6 @@ public class FitReader
         FitHeader               fitHeader;
         int                     bytesExpected;
         int                     bytesRead;
-        int                     crc;
         CrcReader               reader;
         FitMessageRepository    repository;
      
@@ -367,8 +368,8 @@ public class FitReader
                     LOGGER.error("Error reading records: unexpected end of file");
                 }
 
-                // Read the CRC
-                crc=FitToolbox.readInt(reader, in, 2, true);
+                // Read the CRC (required for the CRC check)
+                FitToolbox.readInt(reader, in, 2, true);
 
                 // CRC check
                 if (!reader.isValid())
