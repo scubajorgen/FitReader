@@ -57,9 +57,9 @@ public class FitMessage
      ***************************************************************************/
     /**
      * Constructor. The values from the global header are set.
-     * @param localMessageType
-     * @param headerType
-     * @param hasDeveloperData 
+     * @param localMessageType Local message type
+     * @param headerType Header type
+     * @param hasDeveloperData Indicates whether developer fields are present
      */
     public FitMessage(int localMessageType, HeaderType headerType, boolean hasDeveloperData)
     {
@@ -216,6 +216,7 @@ public class FitMessage
      * @param globalMessageNumber The global message number
      * @param fieldNumber The field definition number
      * @param size Field length in bytes
+     * @param fieldDescription The FitMessage from which the field definition must be retrieved
      * @param developerDataIndex Index. 
      */
     public void addDeveloperField(int globalMessageNumber, int fieldNumber, int size, int developerDataIndex, FitMessage fieldDescription)
@@ -356,6 +357,7 @@ public class FitMessage
     
     /**
      * Returns the number of records stored with this message
+     * @return The number of records
      */
     public int getNumberOfRecords()
     {
@@ -1053,6 +1055,7 @@ public class FitMessage
      * as String.
      * @param index Record index
      * @param fieldName Name of the field as in the global profile
+     * @param developerField Indicates whether or not this is a developer field
      * @return The value as string or null if not found
      */
     public String getStringValue(int index, String fieldName, boolean developerField)

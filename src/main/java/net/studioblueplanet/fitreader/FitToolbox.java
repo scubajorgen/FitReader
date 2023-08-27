@@ -15,7 +15,8 @@ import java.io.InputStream;
 public class FitToolbox
 {
     /**
-     * This method reads an integer value from the input stream
+     * This method reads an integer value from the input stream; CRC is updated
+     * @param reader Reader to use icm in; is used for CRC calculation
      * @param in Input stream
      * @param bytes Number of bytes
      * @param isLittleEndian True if the format in the stream is little endian, false for big endian
@@ -51,6 +52,7 @@ public class FitToolbox
     
     /**
      * Reads a string from the input stream.
+     * @param reader Reader to use icm in; is used for CRC calculation
      * @param in Input stream
      * @param chars Number of characters to read
      * @return The string read

@@ -75,7 +75,7 @@ public class FitHeader
      * Returns the data type. Specification: ASCII values for “.FIT”. A FIT 
      * binary file opened with a text editor will contain a readable “.FIT” 
      * in the first line.
-     * @return 
+     * @return The data type
      */
     public String getDataType()
     {

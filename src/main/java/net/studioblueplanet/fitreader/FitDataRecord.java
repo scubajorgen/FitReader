@@ -38,7 +38,8 @@ public class FitDataRecord
 
     /**
      * Constructor
-     * @param recordData The record data 
+     * @param recordData The record data
+     * @param endianness The endianness of the record
      */
     public FitDataRecord(int[] recordData, Endianness endianness)
     {

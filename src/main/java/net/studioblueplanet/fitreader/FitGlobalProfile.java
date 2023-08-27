@@ -504,8 +504,8 @@ public class FitGlobalProfile
    
     /**
      * Gets the value name for given data type, based on the value ID
-     * @param typeName
-     * @param valueId
+     * @param typeName The name of the Type
+     * @param valueId The integer value for which the name is requested
      * @return The name or null if non-existent
      */
     public String getTypeValueName(String typeName, int valueId)
