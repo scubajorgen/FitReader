@@ -173,7 +173,7 @@ public class FitGlobalProfile
         messageNumber   =65535;
 
         maxRows=sheet.getLastRowNum();
-        for (lineNumber=2; lineNumber<=maxRows; lineNumber++) 
+        for (lineNumber=1; lineNumber<=maxRows; lineNumber++) 
         {
             Row row=sheet.getRow(lineNumber);
             
