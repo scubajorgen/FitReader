@@ -71,18 +71,18 @@ public class FitReaderTest
      */
     private FitMessageRepository readTestFitFile()
     {
-        FitMessageRepository repository;     
-        FitReader           reader;
-        InputStream         in;
-        byte[]              inputBytes;        
+        FitMessageRepository    repository;     
+        FitReader               reader;
+        InputStream             in;
+        byte[]                  inputBytes;        
       
         reader=FitReader.getInstance();
         
         // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D06180100002E4649540000"+                          // header (no CRC, CRC=0)
+        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D06070100002E4649540000"+                          // header (no CRC, CRC=0)
                 
                                                                    "40000000000603048C040486010284020284050284000100"+      // definition message 0x00 - file_id
-                                                                   "0082224BEAFFFFFFFF01001F06FFFF08"+                      // data message 0x01
+                                                                   "0082224BEAFFFFFFFF01001F06FFFF08"+                      // data message 0x00
                                                                    
                                                                    "410000310002000284010102"+                              // definition message 0x01 - file_created
                                                                    "01FE01FF"+
@@ -95,7 +95,7 @@ public class FitReaderTest
                                                                    "C25BD2114DEF7F5605005E00820AFFFF"+
                                                                    "7468697320697320736f6d652066756e6e792074657874207468617420736572766573206173206465736372697074696f6E"+
                 
-                                                                   "0000");                                                                 // crc
+                                                                   "ED2B");                                                                 // crc
         in=new ByteArrayInputStream(inputBytes);
 
         repository=reader.readInputStream(in, false);
@@ -136,6 +136,38 @@ public class FitReaderTest
         return repository;
     }
     
+    /**
+     * Read .FIT bytes from String
+     */
+    @Test
+    public void testReadInputStream1()
+    {
+        System.out.println("readInputStream example");
+        FitMessageRepository repo=readTestFitFile();
+        assertEquals(true, repo.messageExists(0));
+        assertEquals(false, repo.messageExists(3));
+        List<String> names=repo.getMessageNames();
+        assertEquals(3, names.size());
+        assertEquals("file_id", names.get(0));
+        assertEquals("location", names.get(2));
+        FitMessage message;
+        message=repo.getFitMessage("file_id");
+        assertNotNull(message);
+        assertEquals("file_id", message.getMessageName());
+        assertEquals(6, message.getNumberOfFields());
+        assertEquals(1, message.getNumberOfRecords());
+        names=message.getMessageFieldNames();
+        assertEquals(6, names.size());
+        assertEquals("manufacturer", names.get(2));
+        List<FitMessageField> definitions=message.getFieldDefintions();
+        assertEquals("manufacturer", definitions.get(2).definition.fieldName);
+        assertEquals(132, definitions.get(2).baseType);
+        assertEquals(1, message.getIntValue(0, "manufacturer"));
+        
+        message=repo.getFitMessage("pietje_puk");
+        assertNull(message);
+    }
+
     @Test
     public void testReadFile()
     {
