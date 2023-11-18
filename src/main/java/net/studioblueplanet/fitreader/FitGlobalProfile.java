@@ -325,7 +325,7 @@ public class FitGlobalProfile
     /**
      * Get the name of the message, based on the global message number
      * @param messageNumber The global message number as present in the definition message (0-65535)
-     * @return The description, or "not found" if the number is illegal
+     * @return The description, or "not found [messageNumber]" if the number is illegal
      */
     public String getGlobalMessageName(int messageNumber)
     {
@@ -337,7 +337,7 @@ public class FitGlobalProfile
         ProfileType type=globalProfileTypes.get("mesg_num");
         iterator    =type.getValues().iterator();
         found       =false;
-        description="not found";
+        description="not found "+messageNumber;
         while (iterator.hasNext() && !found)
         {
             value=iterator.next();
@@ -387,7 +387,7 @@ public class FitGlobalProfile
      * and field identification
      * @param globalMessageNumber The global message number (0-65535)
      * @param fieldNumber The field number (0-255)
-     * @return The description or "not found" if not found
+     * @return The description or "not found [fieldNumber]" if not found
      */
     public String getMessageFieldName(int globalMessageNumber, int fieldNumber)
     {
@@ -398,7 +398,7 @@ public class FitGlobalProfile
         
         iterator    =globalProfileFields.iterator();
         found       =false;
-        description="not found";
+        description="not found 999";
         while (iterator.hasNext() && !found)
         {
             field=iterator.next();
@@ -442,7 +442,7 @@ public class FitGlobalProfile
             field.messageNumber=globalMessageNumber;
             field.messageName=getGlobalMessageName(globalMessageNumber);
             field.fieldNumber=fieldNumber;
-            field.fieldName="not found";
+            field.fieldName="not found "+fieldNumber;
         }
 
         return field;
@@ -457,12 +457,10 @@ public class FitGlobalProfile
     public FitFieldDefinition getMessageField(String messageName, String fieldName)
     {
         Iterator<FitFieldDefinition>    iterator;
-        boolean                         found;
         FitFieldDefinition              field;
         FitFieldDefinition              theField;
         
         iterator    =globalProfileFields.iterator();
-        found       =false;
         theField    =null;
 
         while (iterator.hasNext() && theField==null)

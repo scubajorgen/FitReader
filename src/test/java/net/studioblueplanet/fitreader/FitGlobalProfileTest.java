@@ -60,7 +60,7 @@ public class FitGlobalProfileTest
         
         // Validate the number of lines read from the excel file
         assertEquals(178, instance.getNumberOfGlobalProfileTypes());
-        assertEquals(1295, instance.getNumberOfGlobalProfileFields());
+        assertEquals(1298, instance.getNumberOfGlobalProfileFields());
     }
 
     /**
@@ -73,7 +73,7 @@ public class FitGlobalProfileTest
         assertEquals("file_id", instance.getGlobalMessageName(0));
         assertEquals("met_zone", instance.getGlobalMessageName(10));
         assertEquals("location", instance.getGlobalMessageName(29));
-        assertEquals("not found", instance.getGlobalMessageName(999));
+        assertEquals("not found 999", instance.getGlobalMessageName(999));
     }
 
     /**
@@ -122,18 +122,18 @@ public class FitGlobalProfileTest
         assertEquals("name", definition.fieldName);
         assertEquals("string", definition.fieldType);
         
-        definition = instance.getMessageField(999, 999);
-        assertEquals(999, definition.messageNumber);
-        assertEquals("not found", definition.messageName);
+        definition = instance.getMessageField(998, 999);
+        assertEquals(998, definition.messageNumber);
+        assertEquals("not found 998", definition.messageName);
         assertEquals(999, definition.fieldNumber);
-        assertEquals("not found", definition.fieldName);
+        assertEquals("not found 999", definition.fieldName);
         assertEquals(null, definition.fieldType);
 
         definition = instance.getMessageField(2, 999);
         assertEquals(2, definition.messageNumber);
         assertEquals("device_settings", definition.messageName);
         assertEquals(999, definition.fieldNumber);
-        assertEquals("not found", definition.fieldName);
+        assertEquals("not found 999", definition.fieldName);
         assertEquals(null, definition.fieldType);
     }
 
