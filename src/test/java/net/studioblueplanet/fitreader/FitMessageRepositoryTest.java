@@ -134,7 +134,7 @@ public class FitMessageRepositoryTest
         
         assertEquals(28, result.size());
         assertEquals("file_id", result.get(0));
-        assertEquals("not found", result.get(27));
+        assertEquals("not found 113", result.get(27));
     }
 
     @Test

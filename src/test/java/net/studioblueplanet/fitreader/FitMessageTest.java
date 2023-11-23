@@ -629,10 +629,10 @@ public class FitMessageTest
         assertEquals("lap", instance.getMessageName());
 
         instance.setGlobalMessageNumber(222);
-        assertEquals("not found", instance.getMessageName());
+        assertEquals("not found 222", instance.getMessageName());
         
         instance.setGlobalMessageNumber(65535);
-        assertEquals("not found", instance.getMessageName());
+        assertEquals("not found 65535", instance.getMessageName());
     }
 
     @Test
