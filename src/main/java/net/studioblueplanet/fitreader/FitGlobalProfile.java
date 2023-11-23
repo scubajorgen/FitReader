@@ -299,13 +299,13 @@ public class FitGlobalProfile
         }
         catch (FileNotFoundException e)
         {
-            System.err.println("File "+GLOBALPROFILE+" not found: "+e.getMessage());
+            LOGGER.error("File {} not found: {}", GLOBALPROFILE, e.getMessage());
         }
         catch (IOException e)
         {
-            System.err.println("Error reading file "+GLOBALPROFILE+": "+e.getMessage());
+            LOGGER.error("Error reading file {}: {}", GLOBALPROFILE, e.getMessage());
         }
-        System.out.println("Global Profile read from "+GLOBALPROFILE);
+        LOGGER.info("Global Profile read from {}", GLOBALPROFILE);
         
     }
 
