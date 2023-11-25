@@ -178,6 +178,7 @@ public class FitGlobalProfileTest
         System.out.println("getTypeValueName");
         assertEquals("uint16z", instance.getTypeValueName("fit_base_type", 139));
         assertEquals("cycling", instance.getTypeValueName("sport", 2));
+        assertEquals("airoha", instance.getTypeValueName("garmin_product", 3866)); //addtional type
         assertNull(instance.getTypeValueName("sport", 255));
         assertNull(instance.getTypeValueName("non_existent", 1));
     }
