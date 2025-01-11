@@ -60,7 +60,7 @@ public class FitGlobalProfileTest
         
         // Validate the number of lines read from the excel file
         assertEquals(179, instance.getNumberOfGlobalProfileTypes());
-        assertEquals(1399, instance.getNumberOfGlobalProfileFields());
+        assertEquals(1401, instance.getNumberOfGlobalProfileFields());
     }
 
     /**
