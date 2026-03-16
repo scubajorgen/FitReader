@@ -25,16 +25,19 @@ public class FitDataRecordTest
     
     public FitDataRecordTest()
     {
+        // Nothing to be done here
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
     
     @Before
@@ -50,6 +53,7 @@ public class FitDataRecordTest
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**

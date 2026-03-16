@@ -5,6 +5,7 @@
  */
 package net.studioblueplanet.fitreader;
 
+import jakarta.xml.bind.DatatypeConverter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,16 +27,19 @@ public class FitReaderTest
     
     public FitReaderTest()
     {
+        // Nothing to be done here
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
     
     @Before
@@ -47,6 +51,7 @@ public class FitReaderTest
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**
@@ -79,23 +84,23 @@ public class FitReaderTest
         reader=FitReader.getInstance();
         
         // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D06070100002E4649540000"+                          // header (no CRC, CRC=0)
+        inputBytes=DatatypeConverter.parseHexBinary("0E107D06070100002E4649540000"+                          // header (no CRC, CRC=0)
                 
-                                                                   "40000000000603048C040486010284020284050284000100"+      // definition message 0x00 - file_id
-                                                                   "0082224BEAFFFFFFFF01001F06FFFF08"+                      // data message 0x00
-                                                                   
-                                                                   "410000310002000284010102"+                              // definition message 0x01 - file_created
-                                                                   "01FE01FF"+
-                
-                                                                   "4200001D0009FD0486001007010485020485FE0284030284040284050284063207"+    // definition message 0x02 - waypoints
-                                                                   "0247FD6432746573745F74726B202D205374617200"+                            // data message 0x02
-                                                                   "04462225A979F00400005F00FFFFFFFF"+
-                                                                   "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"+
-                                                                   "02FFFFFFFF4761726D696E2054616977616E000000"+                            // data message 0x02
-                                                                   "C25BD2114DEF7F5605005E00820AFFFF"+
-                                                                   "7468697320697320736f6d652066756e6e792074657874207468617420736572766573206173206465736372697074696f6E"+
-                
-                                                                   "ED2B");                                                                 // crc
+                                                    "40000000000603048C040486010284020284050284000100"+      // definition message 0x00 - file_id
+                                                    "0082224BEAFFFFFFFF01001F06FFFF08"+                      // data message 0x00
+
+                                                    "410000310002000284010102"+                              // definition message 0x01 - file_created
+                                                    "01FE01FF"+
+
+                                                    "4200001D0009FD0486001007010485020485FE0284030284040284050284063207"+    // definition message 0x02 - waypoints
+                                                    "0247FD6432746573745F74726B202D205374617200"+                            // data message 0x02
+                                                    "04462225A979F00400005F00FFFFFFFF"+
+                                                    "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"+
+                                                    "02FFFFFFFF4761726D696E2054616977616E000000"+                            // data message 0x02
+                                                    "C25BD2114DEF7F5605005E00820AFFFF"+
+                                                    "7468697320697320736f6d652066756e6e792074657874207468617420736572766573206173206465736372697074696f6E"+
+
+                                                    "ED2B");                                                                 // crc
         in=new ByteArrayInputStream(inputBytes);
 
         repository=reader.readInputStream(in, false);
@@ -118,17 +123,17 @@ public class FitReaderTest
         reader=FitReader.getInstance();
         
         // Simple fit file: file_id (1 record), file_created (1 record), waypoints (2 records). All one record
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0E107D064C0000002E4649540000"+                          // header (no CRC: CRC=0)
+        inputBytes=DatatypeConverter.parseHexBinary("0E107D064C0000002E4649540000"+                          // header (no CRC: CRC=0)
                 
-                                                                   "400000140003FD0486000485010485"+                        // 15 definition message 0x00 - record - timestamp position_lat position_long
-                                                                   "4100001D0002010485020485"+                              // 12 definition message 0x01 - waypoints - position_lat position_long
+                                                    "400000140003FD0486000485010485"+                        // 15 definition message 0x00 - record - timestamp position_lat position_long
+                                                    "4100001D0002010485020485"+                              // 12 definition message 0x01 - waypoints - position_lat position_long
 
-                                                                   "00250AC628D4118E032CEE71FC"+                           // 13 data message 0x00
-                                                                   "A5D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
-                                                                   "A7D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
-                                                                   "AFD4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
-                                                                   "A2D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
-                                                                   "8AE0");                                                // crc
+                                                    "00250AC628D4118E032CEE71FC"+                           // 13 data message 0x00
+                                                    "A5D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                    "A7D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                    "AFD4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                    "A2D4118E032CEE71FC"+                                   //  9 data message 0x01 - compressed
+                                                    "8AE0");                                                // crc
         in=new ByteArrayInputStream(inputBytes);
 
         repository=reader.readInputStream(in, false);
@@ -174,7 +179,6 @@ public class FitReaderTest
         FitMessageRepository    repository;
         FitMessage               message;
         int                     size;
-        int                     i;
 
         System.out.println("readFile");
 
@@ -190,7 +194,7 @@ public class FitReaderTest
         assertEquals("2021-07-20T21:11:20Z[UTC]"    , message.getTimeValue(0, "timestamp").toString());
         assertEquals(   0, message.getIntValue(0, "distance", false));
         assertEquals(1000, message.getIntValue(1, "speed", false));
-        assertEquals( 1.0, message.getSpeedValue(1, "speed"), 0.0001);
+        assertEquals( 1.0, message.getScaledValue(1, "speed"), 0.0001);
         assertEquals( 126, message.getIntValue(0, "heart_rate", false));
         
         // Developer field
@@ -213,7 +217,7 @@ public class FitReaderTest
         
         assertEquals(53.0190818477, message.getLatLonValue(100, "position_lat"), 0.00000001);
         assertEquals(6.7377460096, message.getLatLonValue(100, "position_long"), 0.00000001);
-        assertEquals(17.0, message.getAltitudeValue(100, "altitude"), 0.000001);
+        assertEquals(17.0, message.getScaledValue(100, "altitude"), 0.000001);
         
     }
         
@@ -223,7 +227,6 @@ public class FitReaderTest
         FitMessageRepository    repository;
         FitMessage               message;
         int                     size;
-        int                     i;
 
         System.out.println("readFile 2");
 
@@ -245,9 +248,8 @@ public class FitReaderTest
     public void testReadFile3()
     {
         FitMessageRepository    repository;
-        FitMessage               message;
+        FitMessage              message;
         int                     size;
-        int                     i;
 
         System.out.println("readFile 3");
 
@@ -272,17 +274,16 @@ public class FitReaderTest
 
         message=repository.getFitMessage("file_id");
         assertEquals(3906, message.getIntValue(0, "product"));
-        // Not in the spec yet...
-//        assertEquals("fenix 7 Solar", FitGlobalProfile.getInstance().getTypeValueName("garmin_product", (int)message.getIntValue(0, "product")));
+        // Fenix 7 Solar Not in the spec yet...
+        assertEquals("fenix7", FitGlobalProfile.getInstance().getTypeValueName("garmin_product", (int)message.getIntValue(0, "product")));
     }    
   
     @Test
     public void testReadCompressedTimeStampFile()
     {
         FitMessageRepository    repository;
-        FitMessage               message;
+        FitMessage              message;
         int                     size;
-        int                     i;
 
         System.out.println("compressedTimeStampFile");
 
@@ -310,18 +311,16 @@ public class FitReaderTest
     public void testReadFileCrc()
     {
         FitMessageRepository    repository;
-        List<String>            messages;
-        
         System.out.println("readFile");
         
         // Apperently a file with a CRC ERROR!!!!!!
-        FitReader instance=FitReader.getInstance();
-        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", false);
+        FitReader instance2=FitReader.getInstance();
+        repository=instance2.readFile("src/test/resources/LocationsEdge810.fit", false);
         assertNull(repository);
-        repository=instance.readFile("src/test/resources/LocationsEdge810.fit", true);
+        repository=instance2.readFile("src/test/resources/LocationsEdge810.fit", true);
         assertNotNull(repository);
         
-        repository=instance.readFile("src/test/resources/LocationsEdge830.fit", false);
+        repository=instance2.readFile("src/test/resources/LocationsEdge830.fit", false);
         assertNotNull(repository);
     }
 }

@@ -24,10 +24,10 @@ import java.time.ZonedDateTime;
  */
 public class FitMessage
 { 
-    private final static Logger     LOGGER = LogManager.getLogger(FitMessage.class);
-    public enum HeaderType              {NORMAL, COMPRESSED_TIMESTAMP};
-    public enum RecordType              {DEFINITION, DATA};
-    public enum Endianness              {LITTLEENDIAN, BIGENDIAN};
+    private static final Logger                 LOGGER = LogManager.getLogger(FitMessage.class);
+    public enum HeaderType                      {NORMAL, COMPRESSED_TIMESTAMP}
+    public enum RecordType                      {DEFINITION, DATA}
+    public enum Endianness                      {LITTLEENDIAN, BIGENDIAN}
 
     public static final int                     TIMESTAMP_INDEX=253;
     
@@ -129,6 +129,15 @@ public class FitMessage
     public void setHasDeveloperData(boolean hasDeveloperData)
     {
         this.hasDeveloperData=hasDeveloperData;
+    }
+
+    /**
+     * Indicates if the message has developer data
+     * @return True if it has developer data
+     */
+    public boolean hasDeveloperData()
+    {
+        return this.hasDeveloperData;
     }
     
     /**
@@ -307,17 +316,17 @@ public class FitMessage
      */
     public void addDataRecord(int[] bytes)
     {
-        FitDataRecord record;
+        FitDataRecord rec;
         
         if (bytes.length== recordLength)
         {
-            record=new FitDataRecord(bytes, endianness);
-            this.records.add(record);
+            rec=new FitDataRecord(bytes, endianness);
+            this.records.add(rec);
             if (hasTimeStamp)
             {
-                FitMessageField field=this.getMessageField(TIMESTAMP_INDEX);
-                mostRecentTimeStamp=(int)record.bytesToSignedInt(field.byteArrayPosition, 4);
-                previousTimeStampOffset=mostRecentTimeStamp & 0x1F;
+                FitMessageField field   =this.getMessageField(TIMESTAMP_INDEX);
+                mostRecentTimeStamp     =(int)rec.bytesToSignedInt(field.byteArrayPosition, 4);
+                previousTimeStampOffset =mostRecentTimeStamp & 0x1F;
             }
         }
         else
@@ -384,12 +393,9 @@ public class FitMessage
         {
             field=iterator.next();
             fieldDefinition=field.definition;
-            if (fieldDefinition!=null)
+            if (fieldDefinition!=null && fieldDefinition.fieldName.equals(fieldName))
             {
-                if (fieldDefinition.fieldName.equals(fieldName))
-                {
-                    found=true;
-                }
+                found=true;
             }
         }
         if (!found)
@@ -440,12 +446,9 @@ public class FitMessage
         {
             field=iterator.next();
             fieldDefinition=field.definition;
-            if (fieldDefinition!=null)
+            if (fieldDefinition!=null && fieldDefinition.fieldNumber==fieldNumber)
             {
-                if (fieldDefinition.fieldNumber==fieldNumber)
-                {
                     found=true;
-                }
             }
         }
         if (!found)
@@ -579,9 +582,9 @@ public class FitMessage
         int                         arrayPosition;
         int                         baseType;
         
-        value           =0;
-        arrayPosition   =-1;
-        baseType        =-1;
+        value           = 0;
+        arrayPosition   = -1;
+        baseType        = -1;
         
         if (developerField)
         {
@@ -639,18 +642,18 @@ public class FitMessage
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 4);
                         break;
                     default:
-                        LOGGER.info("Retrieving record value: value is not a integer");
+                        LOGGER.info("Retrieving record int value: value is not a integer");
                         break;
                 }
             }
             else
             {
-                LOGGER.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record int value: index out of bounds");
             }
         }
         else
         {
-            LOGGER.debug("Retrieving record value: Field with name {} not found.", fieldName);
+            LOGGER.debug("Retrieving record int value: Field with name {} not found.", fieldName);
         }
         
         return value;
@@ -670,7 +673,7 @@ public class FitMessage
     
     /**
      * This method returns a particular value of the given field 
-     * (regular message field or devoper field) at given index.
+     * (regular message field or developer field) at given index.
      * @param index Index Record index
      * @param fieldName Name of the field as in the global profile
      * @param developerField Indicates whether a developer field is requested (true)
@@ -685,9 +688,9 @@ public class FitMessage
         int                         arrayPosition;
         int                         baseType;
         
-        value           =0L;
-        arrayPosition   =-1;
-        baseType        =-1;
+        value           = 0L;
+        arrayPosition   = -1;
+        baseType        = -1;
         
         if (developerField)
         {
@@ -724,18 +727,18 @@ public class FitMessage
                         value=records.get(index).bytesToUnsignedInt(arrayPosition, 8);
                         break;
                     default:
-                        LOGGER.info("Retrieving record value: value is not a long");
+                        LOGGER.info("Retrieving record long value: value is not a long");
                         break;
                 }
             }
             else
             {
-                LOGGER.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record long value: index out of bounds");
             }
         }
         else
         {
-            LOGGER.info("Retrieving record value: Field with name {} not found.", fieldName);
+            LOGGER.info("Retrieving record long value: Field with name {} not found.", fieldName);
         }
         return value;
     }
@@ -850,9 +853,9 @@ public class FitMessage
         int                         arrayPosition;
         int                         baseType;
         
-        value           =0L;
-        arrayPosition   =-1;
-        baseType        =-1;
+        value           = 0L;
+        arrayPosition   = -1;
+        baseType        = -1;
         
         if (developerField)
         {
@@ -886,18 +889,18 @@ public class FitMessage
                         value=records.get(index).bytesToFloat(arrayPosition, 8);
                         break;
                     default:
-                        LOGGER.info("Retrieving record value: value is not a float");
+                        LOGGER.info("Retrieving record float value: value is not a float");
                         break;
                 }
             }
             else
             {
-                LOGGER.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record float value: index out of bounds");
             }
         }
         else
         {
-            LOGGER.info("Retrieving record value: Field with name {} not found.", fieldName);
+            LOGGER.info("Retrieving record float value: Field with name {} not found.", fieldName);
         }
         return value;
     }
@@ -934,7 +937,7 @@ public class FitMessage
                 scale       =this.getMessageField(fieldName).definition.scale;
                 offset      =this.getMessageField(fieldName).definition.offset;
                 value       =this.getIntValue(index, fieldName, false);
-                scaledValue =(double)value/scale-offset;
+                scaledValue =value/scale-offset;
             }
             else
             {
@@ -962,7 +965,7 @@ public class FitMessage
         
         value=this.getIntValue(index, fieldName);
         // = 180 degrees * latlon / (2^31)
-        latlon  =180.0*(double)value/(2147483648.0);  
+        latlon  =180.0*value/(2147483648.0);  
         return latlon;        
     }
     
@@ -972,6 +975,7 @@ public class FitMessage
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
      * @return The lat or lon value or 0.0 if an error occurred.
+     * @deprecated 
      */
     @Deprecated
     public double getAltitudeValue(int index, String fieldName)
@@ -980,7 +984,7 @@ public class FitMessage
         double altitude;
         
         value=this.getIntValue(index, fieldName);
-        altitude=(double)value/5.0-500.0;
+        altitude=value/5.0-500.0;
         return altitude;
     }
     
@@ -990,6 +994,7 @@ public class FitMessage
      * @param index Record index
      * @param fieldName Name of the field as in the global profile
      * @return The speed value or 0.0 if an error occurred.
+     * @deprecated
      */
     @Deprecated
     public double getSpeedValue(int index, String fieldName)
@@ -1025,6 +1030,7 @@ public class FitMessage
      * @param index Index in the array
      * @param fieldName Name of the field as in the global profile
      * @return The distance value or 0.0 if an error occurred.
+     * @deprecated 
      */
     @Deprecated
     public double getDistanceValue(int index, String fieldName)
@@ -1033,7 +1039,7 @@ public class FitMessage
         double distance;
         
         value=this.getIntValue(index, fieldName);
-        distance=value/100;
+        distance=value/100.0;
         return distance;
     }
     
@@ -1067,10 +1073,10 @@ public class FitMessage
         int                         baseType;
         int                         size;
         
-        value           =null;
-        arrayPosition   =-1;
-        baseType        =-1;
-        size            =0;
+        value           = null;
+        arrayPosition   = -1;
+        baseType        = -1;
+        size            = 0;
         
         if (developerField)
         {
@@ -1103,17 +1109,17 @@ public class FitMessage
                 }
                 else
                 {
-                    LOGGER.error("Retrieving string value: field does not represent a string");
+                    LOGGER.error("Retrieving string String value: field does not represent a string");
                 }
             }
             else
             {
-                LOGGER.error("Retrieving record value: index out of bounds");
+                LOGGER.error("Retrieving record String value: index out of bounds");
             }
         }
         else
         {
-            LOGGER.info("Retrieving record value: Field with name {} not found.",fieldName);
+            LOGGER.info("Retrieving record String value: Field with name {} not found.",fieldName);
         }
         
         
@@ -1128,16 +1134,18 @@ public class FitMessage
      */
     public void dumpMessage()
     {
-        LOGGER.debug("Local Msg Type:"+this.localMessageType);
-        LOGGER.debug("Global Msg Num:"+this.globalMessageNumber);
-        LOGGER.debug("Header Type   :"+this.headerType.toString());
-        LOGGER.debug("Endianness    :"+this.endianness.toString());
-        LOGGER.debug("Fields        :"+this.fieldDefinitions.size());
-        LOGGER.debug("Dev. fields   :"+this.developerFieldDefinitions.size());
+        LOGGER.debug("Local Msg Type: {}", this.localMessageType);
+        LOGGER.debug("Global Msg Num: {}", this.globalMessageNumber);
+        LOGGER.debug("Header Type   : {}", this.headerType);
+        LOGGER.debug("Endianness    : {}", this.endianness);
+        LOGGER.debug("Fields        : {}", this.fieldDefinitions.size());
+        LOGGER.debug("Dev. fields   : {}", this.developerFieldDefinitions.size());
         
         for(FitMessageField field: fieldDefinitions)
         {
-            LOGGER.debug("Field         : "+field.definition.toString()+", size: "+field.size+", base type "+field.baseType+"("+globalProfile.getBaseTypeName(field.baseType)+")");
+            String baseTypeName=globalProfile.getBaseTypeName(field.baseType);
+            LOGGER.debug("Field         : {}, size: {}, base type {} ({})", 
+                         field.definition, field.size, field.baseType, baseTypeName);
         }
         for(FitDeveloperField field: developerFieldDefinitions)
         {

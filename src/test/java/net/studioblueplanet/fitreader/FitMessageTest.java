@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 
 /**
  *
@@ -26,16 +25,19 @@ public class FitMessageTest
     
     public FitMessageTest()
     {
+        // Nothing to be done here yet
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
     
     @Before
@@ -73,7 +75,8 @@ public class FitMessageTest
         instance.addMessageField(20, 253, 4, 133);    // 'timestamp'
         instance.addMessageField(20,   5, 4, 134);    // 'distance'
         instance.addMessageField(20,   6, 2, 132);    // 'speed'
-        instance.addMessageField(20, 114, 4, 0x88);    // 'grit' (FLOAT32)
+        instance.addMessageField(20, 114, 4, 0x88);   // 'grit' (FLOAT32)
+        instance.addMessageField(20, 252, 8, 143);    // 'test_fitreader'
         
         instance.addDeveloperField(20, 2, 1, 3, developerFieldDefinition);
         instance.addDeveloperField(20, 4, 8, 3, developerFieldDefinition);
@@ -87,6 +90,7 @@ public class FitMessageTest
                       100,0,0,0,
                       200,0,
                       0x00, 0x40, 0x9a, 0x44, //1234.0
+                      100,0,0,0,0,0,0,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         int[] record5={0xD4, 0x11, 0x8E, 0x03,
@@ -97,6 +101,7 @@ public class FitMessageTest
                       100,0,0,0,
                       200,0,
                       0x44, 0x9a, 0x40, 0x00, //1234.0
+                      101,0,0,0,0,0,0,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         int[] record6={0xD4, 0x11, 0x8E, 0x03,
@@ -107,6 +112,7 @@ public class FitMessageTest
                       100,0,0,0,
                       200,0,
                       0x44, 0x9a, 0x40, 0x00, //1234.0
+                      102,0,0,0,0,0,0,0,
                       10,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         instance.addDataRecord(record4);
@@ -117,6 +123,7 @@ public class FitMessageTest
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**
@@ -163,7 +170,10 @@ public class FitMessageTest
     {
         System.out.println("setHasDeveloperData");
         instance.setHasDeveloperData(true);
-    }
+        assertTrue(instance.hasDeveloperData());
+        instance.setHasDeveloperData(false);
+        assertFalse(instance.hasDeveloperData());
+     }
 
     /**
      * Test of setNumberOfFields method, of class FitRecord.
@@ -172,7 +182,7 @@ public class FitMessageTest
     public void testGetNumberOfFields()
     {
         System.out.println("getNumberOfFields");
-        assertEquals(8, instance.getNumberOfFields());
+        assertEquals(9, instance.getNumberOfFields());
     }
 
 
@@ -208,10 +218,10 @@ public class FitMessageTest
     {
         System.out.println("addMessageField");
         
-        assertEquals(8, instance.getNumberOfFields());
+        assertEquals(9, instance.getNumberOfFields());
         assertNull(instance.getMessageField("power"));
         instance.addMessageField(20, 7, 2, 132);      // 'power'
-        assertEquals(9, instance.getNumberOfFields());
+        assertEquals(10, instance.getNumberOfFields());
         assertEquals("power", instance.getMessageField("power").definition.fieldName);
         assertEquals(7, instance.getMessageField("power").definition.fieldNumber);
     }
@@ -261,7 +271,7 @@ public class FitMessageTest
     public void testAddDataRecord()
     {
         System.out.println("addDataRecord");
-        int[] record={0x80, 0xF0, 0xFA, 0x02,
+        int[] rec   ={0x80, 0xF0, 0xFA, 0x02,
                       0x02, 0xFA, 0xF0, 0x80,
                       100, 0,
                       96,
@@ -269,10 +279,11 @@ public class FitMessageTest
                       100,0,0,0,
                       5,0,
                       0x00, 0x40, 0x9a, 0x44, //1234.0
+                      103,0,0,0,0,0,0,0,
                       11,
                       's', 't', 'r', 'i', 'n', 'g', 0, 0};
         assertEquals(3, instance.getNumberOfRecords());
-        instance.addDataRecord(record);
+        instance.addDataRecord(rec);
         assertEquals(4, instance.getNumberOfRecords());
         assertEquals(96, instance.getIntValue(3, "heart_rate"));
         assertEquals(50000000, instance.getIntValue(3, "position_lat"));
@@ -326,7 +337,7 @@ public class FitMessageTest
         FitDeveloperField result = instance.getDeveloperField("test1");
         assertEquals("test1", result.fieldName);
         assertEquals(2, result.fieldNumber);
-        assertEquals(25, result.byteArrayPosition);
+        assertEquals(33, result.byteArrayPosition);
 
         result = instance.getDeveloperField("non_existent");
         assertNull(result);
@@ -395,7 +406,7 @@ public class FitMessageTest
         FitDeveloperField result = instance.getDeveloperField(2);
         assertEquals("test1", result.fieldName);
         assertEquals(2, result.fieldNumber);
-        assertEquals(25, result.byteArrayPosition);
+        assertEquals(33, result.byteArrayPosition);
     
         result = instance.getDeveloperField(255);
         assertNull(result);
@@ -426,10 +437,12 @@ public class FitMessageTest
      * Test of getLongValue method, of class FitRecord.
      */
     @Test
-    @Ignore
     public void testGetLongValue()
     {
         System.out.println("getLongValue");
+        assertEquals(100L, instance.getLongValue(0, "test_fitreader"));
+        assertEquals(101L, instance.getLongValue(1, "test_fitreader"));
+        assertEquals(102L, instance.getLongValue(2, "test_fitreader"));
     }
 
     /**
@@ -493,39 +506,22 @@ public class FitMessageTest
     }
 
     /**
-     * Test of getAltitudeValue method, of class FitRecord.
-     */
-    @Test
-    @Ignore
-    public void testGetAltitudeValue()
-    {
-        System.out.println("getAltitudeValue");
-    }
-
-    /**
-     * Test of getSpeedValue method, of class FitRecord.
-     */
-    @Test
-    public void testGetSpeedValue()
-    {
-        System.out.println("getSpeedValue");
-        assertEquals(0.2, instance.getSpeedValue(0, "speed"), 0.0001);
-    }
-
-    /**
      * Test of getElapsedTimeValue method, of class FitRecord.
      */
     @Test
-    @Ignore
     public void testGetElapsedTimeValue()
     {
         System.out.println("getElapsedTimeValue");
+        // Of course requesting "speed" with this function is nonsense
+        assertEquals(0.2, instance.getElapsedTimeValue(0, "speed"), 0.0001);
     }
 
     /**
      * Test of getDistanceValue method, of class FitRecord.
+     * @deprecated 
      */
     @Test
+    @Deprecated
     public void testGetDistanceValue()
     {
         System.out.println("getDistanceValue");
@@ -560,7 +556,7 @@ public class FitMessageTest
     {
         System.out.println("getGlobalFieldDefintions");
         List<FitMessageField> result = instance.getFieldDefintions();
-        assertEquals(8, result.size());
+        assertEquals(9, result.size());
         assertEquals("position_lat", result.get(0).definition.fieldName);
     }
 
@@ -595,7 +591,7 @@ public class FitMessageTest
         System.out.println("getMessageFieldNames");
         List<String> names=instance.getMessageFieldNames();
         
-        assertEquals(8, names.size());
+        assertEquals(9, names.size());
         assertEquals("position_lat", names.get(0));
         assertEquals("position_long", names.get(1));
         assertEquals("altitude", names.get(2));
@@ -604,6 +600,7 @@ public class FitMessageTest
         assertEquals("distance", names.get(5));
         assertEquals("speed", names.get(6));
         assertEquals("grit", names.get(7));
+        assertEquals("test_fitreader", names.get(8));
         
     }
 

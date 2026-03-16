@@ -16,7 +16,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class FitHeader
 {
-    private final static Logger     LOGGER = LogManager.getLogger(FitHeader.class);
+    private static final Logger     LOGGER = LogManager.getLogger(FitHeader.class);
     private int                     headerSize;
     private int                     protocolVersion;
     private int                     profileVersion;
@@ -102,9 +102,7 @@ public class FitHeader
     public static FitHeader readHeader(InputStream in, boolean ignoreCrc) throws IOException
     {
         FitHeader   header;
-        int         crc;
         CrcReader   reader;
-       
 
         reader=new CrcReader();
         reader.reset();
@@ -119,12 +117,12 @@ public class FitHeader
         
         
         
-        LOGGER.info("Header size      : "+header.headerSize);
-        LOGGER.info("Protocol Version : "+header.protocolVersion);
-        LOGGER.info("Profile Version  : "+header.profileVersion);
-        LOGGER.info("Data size        : "+header.dataSize);
-        LOGGER.info("Data type        : "+header.dataType);
-        LOGGER.info("CRC              : "+header.crc);
+        LOGGER.info("Header size      : {}", header.headerSize);
+        LOGGER.info("Protocol Version : {}", header.protocolVersion);
+        LOGGER.info("Profile Version  : {}", header.profileVersion);
+        LOGGER.info("Data size        : {}", header.dataSize);
+        LOGGER.info("Data type        : {}", header.dataType);
+        LOGGER.info("CRC              : {}", header.crc);
         
         // According to the spec the CRC is not obligatory and may be left to zero.
         // Hence we only check the CRC if it is not zero.
@@ -136,7 +134,6 @@ public class FitHeader
                 header=null;
             }
         }
-
         return header; 
     }    
 }

@@ -22,16 +22,19 @@ public class FitGlobalProfileTest
     
     public FitGlobalProfileTest()
     {
+        // Nothing to be done here yet
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here yet
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here yet
     }
     
     @Before
@@ -43,6 +46,7 @@ public class FitGlobalProfileTest
     @After
     public void tearDown()
     {
+        // Nothing to be done here yet
     }
 
     /**
@@ -60,7 +64,7 @@ public class FitGlobalProfileTest
         
         // Validate the number of lines read from the excel file
         assertEquals(179, instance.getNumberOfGlobalProfileTypes());
-        assertEquals(1401, instance.getNumberOfGlobalProfileFields());
+        assertEquals(1402, instance.getNumberOfGlobalProfileFields());
     }
 
     /**
@@ -83,7 +87,6 @@ public class FitGlobalProfileTest
     public void testGetGlobalMessageNumber()
     {
         System.out.println("getGlobalMessageNumber");
-        int expResult = 0;
         assertEquals(0, instance.getGlobalMessageNumber("file_id"));
         assertEquals(10, instance.getGlobalMessageNumber("met_zone"));
         assertEquals(29, instance.getGlobalMessageNumber("location"));
@@ -182,24 +185,4 @@ public class FitGlobalProfileTest
         assertNull(instance.getTypeValueName("sport", 255));
         assertNull(instance.getTypeValueName("non_existent", 1));
     }
-    
-    
-
-    /**
-     * Test of sintToLatLon method, of class FitGlobalProfile.
-     */
-    /*
-    @Test
-    public void testSintToLatLon()
-    {
-        System.out.println("sintToLatLon");
-        int value = 0;
-        double expResult = 0.0;
-        double result = FitGlobalProfile.sintToLatLon(value);
-        assertEquals(expResult, result, 0.0);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-*/
-   
 }

@@ -14,7 +14,7 @@ import org.apache.logging.log4j.LogManager;
  */
 public class FitDataRecord
 {
-    private final static Logger     LOGGER = LogManager.getLogger(FitDataRecord.class);
+    private static final Logger     LOGGER = LogManager.getLogger(FitDataRecord.class);
     public static final int         BASETYPE_ENUM   =0x00;
     public static final int         BASETYPE_SINT8  =0x01;
     public static final int         BASETYPE_UINT8  =0x02;
@@ -129,7 +129,6 @@ public class FitDataRecord
             }
             i++;
         }
-        System.out.println(String.format("%x", value));
         return value;
     }
     
@@ -168,8 +167,6 @@ public class FitDataRecord
     {
         long    value;
         double  floatValue;
-        boolean sign;
-        
         
         if (size==4)
         {
@@ -196,18 +193,12 @@ public class FitDataRecord
      */
     public String bytesToString(int offset, int size)
     {
-        String string;
-        int i;
-        
-        string="";
-
-        i=0;
-        while (i<size && recordData[offset+i]!='\0')
+        StringBuilder bld=new StringBuilder();
+        for (int i=0; i<size && recordData[offset+i]!='\0'; i++)
         {
-            string+=String.format("%c", recordData[offset+i]);
-            i++;
+            bld.append(String.format("%c", recordData[offset+i]));
         }
-        return string;
+        return bld.toString();
     }
     
     /**
@@ -218,7 +209,6 @@ public class FitDataRecord
      */
     public static boolean isInvalidValue(long value, int baseType)
     {
-        boolean isInvalid;
         long invalidValue;
         
         switch (baseType)

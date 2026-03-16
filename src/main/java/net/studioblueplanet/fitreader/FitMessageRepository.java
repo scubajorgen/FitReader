@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class FitMessageRepository
 {
-    private final static Logger     LOGGER = LogManager.getLogger(FitMessageRepository.class);
+    private static final Logger     LOGGER = LogManager.getLogger(FitMessageRepository.class);
     private final List<FitMessage> messages;
     
     /**
@@ -39,16 +39,11 @@ public class FitMessageRepository
      */
     public boolean messageExists(int localMessageType)
     {
-        boolean             found;
-        Iterator<FitMessage> iterator;
-        FitMessage           message;
-        
-        iterator=messages.iterator();
-        found=false;
-        
-        while(iterator.hasNext() && !false)
+        Iterator<FitMessage> iterator   =messages.iterator();
+        boolean found                   =false;
+        while(iterator.hasNext() && !found)
         {
-            message=iterator.next();
+            FitMessage message=iterator.next();
             if (message.getLocalMessageType()==localMessageType)
             {
                 found=true;
@@ -186,23 +181,16 @@ public class FitMessageRepository
      */
     public List<String> getMessageNames()
     {
-        ArrayList<String>   list;
-        FitMessage           message;
-        Iterator<FitMessage> it;
-        int                 number;
-        String              messageName;
-        FitGlobalProfile    profile;
-        
-        list=new ArrayList();
-        profile=FitGlobalProfile.getInstance();
-        it=this.messages.iterator();
+        ArrayList<String>       list    =new ArrayList<>();
+        FitGlobalProfile        profile =FitGlobalProfile.getInstance();
+        Iterator<FitMessage>    it      =this.messages.iterator();
         
         while (it.hasNext())
         {
-            message=it.next();
+            FitMessage message  =it.next();
             
-            number=message.getGlobalMessageNumber();
-            messageName=profile.getGlobalMessageName(number);
+            int number          =message.getGlobalMessageNumber();
+            String messageName  =profile.getGlobalMessageName(number);
             list.add(messageName);
         }
         return list;
@@ -213,19 +201,18 @@ public class FitMessageRepository
      */
     public void dumpMessageDefintions()
     {
-        List<FitMessageField>   fields;
-        
-        for (FitMessage record : messages)
+        for (FitMessage rec : messages)
         {
+            String globalMessageName=FitGlobalProfile.getInstance().getGlobalMessageName(rec.getGlobalMessageNumber());
             LOGGER.info("MESSAGE {}-{}: {} records, local message type {}", 
-                    record.getGlobalMessageNumber(),
-                    FitGlobalProfile.getInstance().getGlobalMessageName(record.getGlobalMessageNumber()),
-                    record.getNumberOfRecords(),
-                    record.getLocalMessageType());
-            fields=record.getFieldDefintions();
+                    rec.getGlobalMessageNumber(),
+                    globalMessageName,
+                    rec.getNumberOfRecords(),
+                    rec.getLocalMessageType());
+            List<FitMessageField> fields=rec.getFieldDefintions();
             for (FitMessageField field : fields)
             {
-                LOGGER.info(field.toString());
+                LOGGER.info("{}", field);
             }
         }
     }

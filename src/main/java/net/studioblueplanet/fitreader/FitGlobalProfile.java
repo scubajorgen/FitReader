@@ -45,7 +45,7 @@ public class FitGlobalProfile
     }
     
            
-    private final static Logger                     LOGGER = LogManager.getLogger(FitGlobalProfile.class);
+    private static final Logger                     LOGGER = LogManager.getLogger(FitGlobalProfile.class);
     private static final String                     GLOBALPROFILE="/Profile.xlsx";
     /** The one and only instance */
     private static FitGlobalProfile                 theInstance=null;
@@ -92,7 +92,7 @@ public class FitGlobalProfile
                 Cell typeNameCell       =row.getCell(0);
                 Cell typeBaseTypeCell   =row.getCell(1);
 
-                if (typeNameCell!=null && typeNameCell.getCellType()==CellType.STRING && typeNameCell.getStringCellValue().length()>0)
+                if (typeNameCell!=null && typeNameCell.getCellType()==CellType.STRING && !typeNameCell.getStringCellValue().isEmpty())
                 {
                     typeName=typeNameCell.getStringCellValue();
                     // Check if the datatype already exists. If so, update it
@@ -160,30 +160,23 @@ public class FitGlobalProfile
     private void parseGlobalProfileMessageSheet(Sheet sheet)
     {
         FitFieldDefinition          field;
-        int                         messageNumber;
-        int                         fieldNumber;
-        String                      messageName;
-        String                      name;
-        String                      fieldDescription;
-        int                         lineNumber;
         int                         maxRows;
         
-        lineNumber      =0;
-        messageName     ="";
-        messageNumber   =65535;
+        String messageName      ="";
+        int messageNumber       =65535;
 
         maxRows=sheet.getLastRowNum();
-        for (lineNumber=1; lineNumber<=maxRows; lineNumber++) 
+        for (int lineNumber=1; lineNumber<=maxRows; lineNumber++) 
         {
             Row row=sheet.getRow(lineNumber);
             
             if (row!=null)
             {
                 Cell messageNameCell=row.getCell(0);
-                if (messageNameCell!=null && messageNameCell.getCellType()==CellType.STRING && messageNameCell.getStringCellValue().length()>0)
+                if (messageNameCell!=null && messageNameCell.getCellType()==CellType.STRING && !messageNameCell.getStringCellValue().isEmpty())
                 {
-                    name= messageNameCell.getStringCellValue().trim();
-                    if (name.length()>0)
+                    String name= messageNameCell.getStringCellValue().trim();
+                    if (!name.isEmpty())
                     {
                         messageName=name;
                         messageNumber=getGlobalMessageNumber(messageName);
@@ -195,13 +188,12 @@ public class FitGlobalProfile
                 }
                 else
                 {
-                    Cell fieldNameCell  =row.getCell(2);
-                    Cell fieldNumberCell=row.getCell(1);
+                    Cell fieldNameCell              =row.getCell(2);
+                    Cell fieldNumberCell            =row.getCell(1);
                     if (fieldNumberCell!=null && fieldNameCell!=null && fieldNumberCell.getCellType()==CellType.NUMERIC)
                     {
-                        name                        =fieldNameCell.getStringCellValue().trim();
-                        fieldNumber                 =(int)row.getCell(1).getNumericCellValue();
-                        fieldDescription            =row.getCell(2).getStringCellValue();
+                        String fieldName            =fieldNameCell.getStringCellValue().trim();
+                        int fieldNumber             =(int)fieldNumberCell.getNumericCellValue();
                         
                         // Check if the field already exists; if so, reuse
                         field=findFieldDefinition(messageNumber, fieldNumber);
@@ -213,7 +205,7 @@ public class FitGlobalProfile
                         field.messageName           =messageName;
                         field.messageNumber         =messageNumber;
                         field.fieldNumber           =fieldNumber;
-                        field.fieldName             =fieldDescription;
+                        field.fieldName             =fieldName;
                         field.fieldType             =row.getCell(3).getStringCellValue();
 
                         if (row.getCell(6)!=null && row.getCell(6).getCellType()==CellType.NUMERIC)
@@ -245,7 +237,7 @@ public class FitGlobalProfile
                 }
             }
         }
-        LOGGER.info("Read "+globalProfileFields.size()+" global profile field definitions");
+        LOGGER.info("Read {} global profile field definitions", globalProfileFields.size());
     }
     
     /**
@@ -483,10 +475,7 @@ public class FitGlobalProfile
     public String getBaseTypeName(int baseTypeNumber)
     {
         String                          name;
-        Iterator<ProfileTypeValue>      iterator;
-        boolean                         found;
-        ProfileTypeValue                value;
-        
+
         ProfileType type=globalProfileTypes.get("fit_base_type");
         name="not found";
         if (type!=null)
@@ -524,17 +513,13 @@ public class FitGlobalProfile
      */
     public void dumpGlobalTypes()
     {
-        Iterator<ProfileTypeValue>  itValue;
-        ProfileType                 type;
-        ProfileTypeValue            value;
-        
-        for(String key : globalProfileTypes.keySet())
+        for (Map.Entry<String,ProfileType> entry : globalProfileTypes.entrySet())
         {
-            type=      globalProfileTypes.get(key);
-            itValue=type.getValues().iterator();
+            ProfileType type                    =entry.getValue();
+            Iterator<ProfileTypeValue> itValue  =type.getValues().iterator();
             while (itValue.hasNext())
             {
-                value=itValue.next();
+                ProfileTypeValue value=itValue.next();
                 LOGGER.info("{} {}({})", type.getType(), value.getValueName(), value.getValue());
             }
         }
@@ -552,7 +537,7 @@ public class FitGlobalProfile
         while (itType.hasNext())
         {
             field=      itType.next();
-            LOGGER.info(field.toString());
+            LOGGER.info("{}", field);
         }
     }
     

@@ -14,6 +14,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import jakarta.xml.bind.DatatypeConverter;
+
 
 /**
  *
@@ -27,16 +29,19 @@ public class CrcReaderTest
     
     public CrcReaderTest()
     {
+        // Nothing to be done here yet
     }
 
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
 
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
 
     @Before
@@ -44,15 +49,16 @@ public class CrcReaderTest
     {
         byte[]       inputBytes;
         instance=new CrcReader();
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0F121122123456782e4649541C25");
+        inputBytes=DatatypeConverter.parseHexBinary("0F121122123456782e4649541C25");
         in=new ByteArrayInputStream(inputBytes);
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("0F121122123456782e4649541C26");
+        inputBytes=DatatypeConverter.parseHexBinary("0F121122123456782e4649541C26");
         inFail=new ByteArrayInputStream(inputBytes);
     }
 
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**
@@ -62,15 +68,15 @@ public class CrcReaderTest
     public void testReset() throws IOException
     {
         System.out.println("reset");
-        CrcReader instance = new CrcReader();
+        CrcReader instance2 = new CrcReader();
 
         in.reset();
-        instance.read(in);
-        assertEquals(1, instance.getNumberOfBytesRead());
-        assertEquals(false, instance.isValid());
-        instance.reset();
-        assertEquals(0, instance.getNumberOfBytesRead());
-        assertEquals(true, instance.isValid());
+        instance2.read(in);
+        assertEquals(1, instance2.getNumberOfBytesRead());
+        assertEquals(false, instance2.isValid());
+        instance2.reset();
+        assertEquals(0, instance2.getNumberOfBytesRead());
+        assertEquals(true, instance2.isValid());
     }
 
     /**

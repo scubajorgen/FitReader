@@ -11,10 +11,10 @@ package net.studioblueplanet.fitreader;
  */
 public class FitDeveloperField
 {
-    public int fieldNumber;
-    public int size;
-    public int developerDataIndex;
-    public int byteArrayPosition;
+    public int      fieldNumber;
+    public int      size;
+    public int      developerDataIndex;
+    public int      byteArrayPosition;
             
     public byte[]   applicationId;
     public int      baseTypeId;

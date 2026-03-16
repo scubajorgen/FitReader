@@ -23,16 +23,19 @@ public class FitMessageRepositoryTest
     
     public FitMessageRepositoryTest()
     {
+        // Nothing to be done here yet
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
     
     @Before
@@ -46,6 +49,7 @@ public class FitMessageRepositoryTest
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**

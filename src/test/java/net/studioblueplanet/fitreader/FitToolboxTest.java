@@ -5,6 +5,7 @@
  */
 package net.studioblueplanet.fitreader;
 
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.InputStream;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -14,7 +15,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 
 /**
@@ -26,26 +26,31 @@ public class FitToolboxTest
     
     public FitToolboxTest()
     {
+        // Nothing to be done here
     }
     
     @BeforeClass
     public static void setUpClass()
     {
+        // Nothing to be done here
     }
     
     @AfterClass
     public static void tearDownClass()
     {
+        // Nothing to be done here
     }
     
     @Before
     public void setUp()
     {
+        // Nothing to be done here
     }
     
     @After
     public void tearDown()
     {
+        // Nothing to be done here
     }
 
     /**
@@ -63,7 +68,7 @@ public class FitToolboxTest
         
         System.out.println("readInt");
   
-        inputBytes=javax.xml.bind.DatatypeConverter.parseHexBinary("12345678abcdef");
+        inputBytes=DatatypeConverter.parseHexBinary("12345678abcdef");
         in=new ByteArrayInputStream(inputBytes);
         
         bytes           =1;

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.studioblueplanet</groupId>
     <artifactId>FitReader</artifactId>
-    <version>2.42</version>
+    <version>2.43</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -33,6 +33,11 @@
             <artifactId>log4j-core</artifactId>
             <version>2.13.0</version>
         </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>3.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -49,6 +54,30 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+              <groupId>org.jacoco</groupId>
+             <artifactId>jacoco-maven-plugin</artifactId>
+              <version>0.8.7</version>
+              <executions>
+                <execution>
+                  <id>prepare-agent</id>
+                  <goals>
+                    <goal>prepare-agent</goal>
+                  </goals>
+                </execution>
+                <execution>
+                  <id>report</id>
+                  <goals>
+                    <goal>report</goal>
+                  </goals>
+                  <configuration>
+                    <formats>
+                      <format>XML</format>
+                    </formats>
+                  </configuration>
+                </execution>
+              </executions>
             </plugin>
         </plugins>
     </build>

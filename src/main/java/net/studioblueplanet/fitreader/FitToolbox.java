@@ -14,6 +14,10 @@ import java.io.InputStream;
  */
 public class FitToolbox
 {
+    private FitToolbox()
+    {
+    }
+
     /**
      * This method reads an integer value from the input stream; CRC is updated
      * @param reader Reader to use icm in; is used for CRC calculation
@@ -60,17 +64,12 @@ public class FitToolbox
      */
     public static String readString(CrcReader reader, InputStream in, int chars) throws IOException
     {
-        int     i;
-        String  string;
-        
-        string="";
-        i=0;
-        while (i<chars)
+        StringBuilder bld=new StringBuilder();
+        for (int i=0; i<chars; i++)
         {
-            string+=(char)reader.read(in);
-            i++;
+            bld.append((char)reader.read(in));
         }
-        return string;
+        return bld.toString();
     }
         
 }
