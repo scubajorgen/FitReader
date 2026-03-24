@@ -759,7 +759,7 @@ public class FitMessage
         long                        value;
         ZonedDateTime               dateTime;
 
-        if (hasField("timestamp"))
+        if (hasField(fieldName))
         {
             value=this.getIntValue(index, fieldName);
             value&=0xFFFFFFFFL;
@@ -805,7 +805,7 @@ public class FitMessage
         long                        value;
         ZonedDateTime               dateTime;
         
-        if (hasField("timestamp"))
+        if (hasField(fieldName))
         {
             value=this.getIntValue(index, fieldName);
             value&=0xFFFFFFFFL;
